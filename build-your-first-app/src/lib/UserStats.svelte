@@ -42,7 +42,7 @@
       {#if $store.userBalances.XTZ}
         {displayTokenAmount($store.userBalances.XTZ, "XTZ")}
       {:else}
-        No balance
+        0
       {/if}
     </div>
   </div>
@@ -52,7 +52,7 @@
       {#if $store.userBalances.tzBTC}
         {displayTokenAmount($store.userBalances.tzBTC, "tzBTC")}
       {:else}
-        No balance
+        0
       {/if}
     </div>
   </div>
@@ -62,7 +62,7 @@
       {#if $store.userBalances.SIRS}
         {displayTokenAmount($store.userBalances.SIRS, "SIRS")}
       {:else}
-        No balance
+        0
       {/if}
     </div>
   </div>
