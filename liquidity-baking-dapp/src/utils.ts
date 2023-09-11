@@ -84,6 +84,7 @@ export const fetchBalances = async (
     );
     if (res.status === 200) {
       const data = await res.json();
+      if (Array.isArray(data)) {
         const tzbtcBalance = +data[0]?.balance || 0;
         const sirsBalance = +data[1]?.balance || 0;
         return {
