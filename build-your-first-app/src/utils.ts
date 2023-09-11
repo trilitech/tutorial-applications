@@ -84,18 +84,20 @@ export const fetchBalances = async (
     );
     if (res.status === 200) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length === 2) {
-        const tzbtcBalance = +data[0].balance;
-        const sirsBalance = +data[1].balance;
-        if (!isNaN(tzbtcBalance) && !isNaN(sirsBalance)) {
-          return {
-            xtzBalance: xtzBalance.toNumber(),
-            tzbtcBalance,
-            sirsBalance
-          };
-        } else {
-          return null;
+        const tzbtcBalance = +data[0]?.balance || 0;
+        const sirsBalance = +data[1]?.balance || 0;
+        return {
+          xtzBalance: xtzBalance.toNumber(),
+          tzbtcBalance,
+          sirsBalance
         }
+      } else {
+        // Wallet has no tzBTC or SIRS
+        return {
+          xtzBalance: xtzBalance.toNumber(),
+          tzbtcBalance: 0,
+          sirsBalance: 0
+        };
       }
     } else {
       throw "Unable to fetch tzBTC and SIRS balances";
