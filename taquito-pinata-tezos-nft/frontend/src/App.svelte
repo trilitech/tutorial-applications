@@ -19,7 +19,7 @@
     description = "this is Uranus";
   }
 
-  const rpcUrl = "https://ghostnet.api.tez.ie";
+  const rpcUrl = "https://ghostnet.ecadinfra.com";
   const serverUrl =
     process.env.NODE_ENV !== "production"
       ? "http://localhost:8080"
