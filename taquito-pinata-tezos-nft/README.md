@@ -1,51 +1,50 @@
-# Learn how to create NFTs on Tezos using Taquito and Pinata
+# Tutorial application: Mint an NFT using Taquito
 
-##### This is a tutorial dapp to show how to create NFTs on Tezos with Taquito and Pinata
+This is the completed application from the tutorial [Mint an NFT using Taquito](https://docs.tezos.com/tutorials/create-an-nft/nft-taquito/).
 
-Structure of the project
+## Project structure
 
-- Frontend folder: contains the dapp users interact with to provide a picture, title and description for their NFT
-- Backend folder: contains the server app to pin the picture and the metadata to Pinata (IPFS)
-- Contract: contains the FA2 contract recording the NFTs
+This project contains two applications that you run on your computer and one smart contract that you deploy to Tezos:
 
-Getting started:
+- The `frontend` folder contains a Vite and Svelte application that allows users to upload files and send a request to mint and NFT based on that file.
+- The `backend` folder contains an Express application that receives the files and NFT information and mints NFTs.
+- The `contract` folder contains a smart contract written in CameLIGO that manages the NFTs.
 
-- For the frontend dapp:
+## Running the application
 
-```
-npm install
-npm run dev
-```
+To run the application, you must deploy (originate) the contract and start the backend and frontend applications:
 
-You must provide a valid server URL in the `App.svelte` file:
+1. If you don't have an account on Pinata, set one up at <https://www.pinata.cloud/>.
 
-```js
-// Replace `https://my-cool-backend-app.com` with the address where you deployed the backend app
+1. On Pinata, create an API key with the `pinFileToIFPS` and `pinJSONToIFPS` permissions and copy the API key and secret.
 
-const serverUrl =
-  process.env.NODE_ENV !== "production"
-    ? "http://localhost:8080"
-    : "https://my-cool-backend-app.com";
-```
+1. Originate the `contract/NFTS_contract.mligo` file to Tezos, using the commented text at the end as the initial storage value.
+For example, you can use the web IDE for LIGO at <https://ide.ligolang.org/local> to originate the contract.
 
-- For the backend dapp:
+1. Copy the address of the originated contract.
 
-```
-npm install
-npm run dev
-```
+1. Start the backend app:
 
-You must provide a valid app URL for the CORS options:
+   1. Go to the `backend` folder.
 
-```js
-// Replace `https://my-cool-nft-app.com` with the URL of your app
+   1. Install the dependencies by running `npm install`.
 
-const corsOptions = {
-  origin: ["http://localhost:8082", "https://my-cool-nft-app.com"],
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-};
-```
+   1. In the file `src/PinataKeys.ts`, enter your Pinata API key and secret.
 
-- For the contract:
-  The code of the contract can be copy-pasted into the [Ligo web IDE](https://ide.ligolang.org/) and originated from there. The default storage is available in a comment block at the bottom of the contract.
-- Pinata: you will need an account on [Pinata](https://pinata.cloud/pinmanager) and [API keys](https://pinata.cloud/keys). Keep your API keys secret!
+   1. Start the app by running `npm run dev`.
+
+1. Start the frontend app:
+
+   1. Go to the `frontend` folder.
+
+   1. Install the dependencies by running `npm install`.
+
+   1. Update the `src/App.svelte` file to set the address of the contract you originated in this line:
+
+      ```ts
+      const contractAddress = "KT1XKSMfewg86885Q25ezFdNVTr995XVhVCf";
+      ```
+
+   1. Start the app by running `npm run dev`.
+
+1. Open the frontend app in a web browser by going to <http://localhost:5173>.
