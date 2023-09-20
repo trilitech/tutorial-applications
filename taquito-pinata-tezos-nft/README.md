@@ -1,6 +1,6 @@
-# Tutorial application: Mint an NFT using Taquito
+# Tutorial application: Create a web app that mints NFTs
 
-This is the completed application from the tutorial [Mint an NFT using Taquito](https://docs.tezos.com/tutorials/create-an-nft/nft-taquito/).
+This is the completed application from the tutorial [Create a web app that mints NFTs](https://docs.tezos.com/tutorials/create-an-nft/nft-taquito/).
 
 ## Project structure
 
