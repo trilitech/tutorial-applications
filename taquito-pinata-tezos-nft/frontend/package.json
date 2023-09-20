@@ -24,6 +24,7 @@
     "@taquito/taquito": "^15.1.0",
     "@taquito/utils": "^15.1.0",
     "file-loader": "^6.2.0",
+    "sass": "^1.67.0",
     "vite-compatible-readable-stream": "^3.6.1"
   }
 }
