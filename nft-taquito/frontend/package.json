@@ -1,0 +1,30 @@
+{
+  "name": "nft-taquito-pinata-tutorial",
+  "version": "1.0.0",
+  "type": "module",
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^2.0.2",
+    "@tsconfig/svelte": "^3.0.0",
+    "svelte": "^3.55.1",
+    "svelte-check": "^3.0.3",
+    "svelte-preprocess": "^5.0.1",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.5",
+    "vite": "^4.1.1"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@airgap/beacon-sdk": "^3.3.2",
+    "@taquito/beacon-wallet": "^15.1.0",
+    "@taquito/taquito": "^15.1.0",
+    "@taquito/utils": "^15.1.0",
+    "file-loader": "^6.2.0",
+    "sass": "^1.67.0",
+    "vite-compatible-readable-stream": "^3.6.1"
+  }
+}
