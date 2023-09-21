@@ -85,13 +85,6 @@ type mint_params =
   owner: address;
 }
 
-type fa2_entry_points =
-  | Transfer of transfer list
-  | Balance_of of balance_of_param
-  | Update_operators of update_operator list
-  | Mint of mint_params
-  | Burn of token_id
-
 (* 
  TZIP-16 contract metadata storage field type. 
  The contract storage MUST have a field
@@ -345,6 +338,8 @@ type nft_token_storage = {
   admin: address;
 }
 
+type returnValue = operation list * nft_token_storage
+
 (** 
 Retrieve the balances for the specified tokens and owners
 @return callback operation
@@ -362,7 +357,7 @@ let get_balance (p, ledger : balance_of_param * ledger) : operation =
   Tezos.transaction responses 0mutez p.callback
 
 (**
-Update leger balances according to the specified transfers. Fails if any of the
+Update ledger balances according to the specified transfers. Fails if any of the
 permissions or constraints are violated.
 @param txs transfers to be applied to the ledger
 @param validate_op function that validates of the tokens from the particular owner can be transferred. 
@@ -492,30 +487,38 @@ let burn (p, s: token_id * nft_token_storage): nft_token_storage =
         s.reverse_ledger
   in { s with ledger = new_ledger; reverse_ledger = new_reverse_ledger }
 
-let main (param, storage : fa2_entry_points * nft_token_storage)
-    : (operation  list) * nft_token_storage =
-  match param with
-  | Transfer txs ->
-    let (new_ledger, new_reverse_ledger) = transfer 
+(** entrypoints *)
+
+(** Transfer entrypoint *)
+[@entry]
+let transfer (txs : transfer list) (storage : nft_token_storage) : returnValue =
+    let (new_ledger, new_reverse_ledger) = transfer_nfts
       (txs, default_operator_validator, storage.operators, storage.ledger, storage.reverse_ledger) in
     let new_storage = { storage with ledger = new_ledger; reverse_ledger = new_reverse_ledger } in
     ([] : operation list), new_storage
 
-  | Balance_of p ->
+(** Balance entrypoint *)
+[@entry]
+let balance (p : balance_of_param) (storage : nft_token_storage) : returnValue =
     let op = get_balance (p, storage.ledger) in
     [op], storage
 
-  | Update_operators updates ->
+(** Update operators entrypoint *)
+[@entry]
+let update_operators (updates : update_operator list) (storage : nft_token_storage) : returnValue =
     let new_ops = fa2_update_operators (updates, storage.operators) in
     let new_storage = { storage with operators = new_ops; } in
     ([] : operation list), new_storage
 
-  | Mint p ->
+(** Mint NFT entrypoint *)
+[@entry]
+let mint (p : mint_params)  (storage : nft_token_storage) : returnValue =
     ([]: operation list), mint (p, storage)
 
-  | Burn p ->
+(** Burn NFT entrypoint *)
+[@entry]
+let burn (p : token_id)  (storage : nft_token_storage) : returnValue =
     ([]: operation list), burn (p, storage)
-
 
 (*
 
