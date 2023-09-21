@@ -247,7 +247,7 @@
         </div>
         <div>
           <a
-            href={`https://better-call.dev/edo2net/opg/${newNft.opHash}/contents `}
+            href={`https://better-call.dev/ghostnet/opg/${newNft.opHash}/contents `}
             target="_blank"
             rel="noopener noreferrer nofollow"
           >
