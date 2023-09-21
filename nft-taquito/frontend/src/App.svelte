@@ -8,7 +8,7 @@
   let Tezos: TezosToolkit;
   let wallet: BeaconWallet;
   const walletOptions = {
-    name: "Illic et Numquam",
+    name: "Create NFTs",
     preferredNetwork: NetworkType.GHOSTNET
   };
   let userAddress: string;
@@ -202,7 +202,7 @@
 
 <main>
   <div class="container">
-    <h1>Illic Et Numquam</h1>
+    <h1>Create NFTs</h1>
     {#if userAddress}
       <div>
         <div class="user-nfts">
@@ -287,7 +287,7 @@
           {:else if mintingToken}
             <button class="roman"> Minting your NFT... </button>
           {:else}
-            <button class="roman" on:click={upload}> Upload </button>
+            <button class="roman" on:click={upload}> Mint NFT </button>
           {/if}
         </div>
       {/if}
