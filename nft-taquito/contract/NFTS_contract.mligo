@@ -499,7 +499,7 @@ let transfer (txs : transfer list) (storage : nft_token_storage) : returnValue =
 
 (** Balance entrypoint *)
 [@entry]
-let balance (p : balance_of_param) (storage : nft_token_storage) : returnValue =
+let balance_of (p : balance_of_param) (storage : nft_token_storage) : returnValue =
     let op = get_balance (p, storage.ledger) in
     [op], storage
 
