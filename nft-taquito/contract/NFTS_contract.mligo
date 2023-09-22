@@ -512,12 +512,12 @@ let update_operators (updates : update_operator list) (storage : nft_token_stora
 
 (** Mint NFT entrypoint *)
 [@entry]
-let mint (p : mint_params)  (storage : nft_token_storage) : returnValue =
+let mint (p : mint_params) (storage : nft_token_storage) : returnValue =
     ([]: operation list), mint (p, storage)
 
 (** Burn NFT entrypoint *)
 [@entry]
-let burn (p : token_id)  (storage : nft_token_storage) : returnValue =
+let burn (p : token_id) (storage : nft_token_storage) : returnValue =
     ([]: operation list), burn (p, storage)
 
 (*
