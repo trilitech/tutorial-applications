@@ -7,10 +7,8 @@
   const rpcUrl = "https://ghostnet.ecadinfra.com";
   const Tezos = new TezosToolkit(rpcUrl);
   const network = NetworkType.GHOSTNET;
-  //const contractAddress = "KT1WQmXvGGNsLoXh5WaaKQamEB89YfkkcqEq";
   const contractAddress = "KT1W8FrDRM28BGy1VVKXfN9L61jW1dgAjHQi"
-  //const contractAddress = "KT1PUNs8siPZqbSiqrUfxPoTYCxvCzFChfc8"
-  //KT1JyBJ1UFACxYpFdtS3ZJmHPjWyaqDk45F3
+
 
   let wallet;
   let address;
