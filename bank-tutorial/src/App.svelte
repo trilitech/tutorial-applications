@@ -75,7 +75,7 @@
       })
       .then((op) => {
         console.log(`Waiting for ${op.opHash} to be confirmed...`);
-        return op.confirmation(3).then(() => op.opHash);
+        return op.confirmation(2).then(() => op.opHash);
       })
       .then((hash) =>
         console.log(`Operation injected: https://ghost.tzstats.com/${hash}`)
@@ -101,7 +101,7 @@
       .send()
       .then((op) => {
         console.log(`Waiting for ${op.opHash} to be confirmed...`);
-        return op.confirmation(3).then(() => op.opHash);
+        return op.confirmation(2).then(() => op.opHash);
       })
       .then((hash) =>
         console.log(`Operation injected: https://ghost.tzstats.com/${hash}`)
