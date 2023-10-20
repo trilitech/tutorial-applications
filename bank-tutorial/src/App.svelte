@@ -56,13 +56,21 @@
     depositButtonActive = false;
     depositButtonLabel = "Depositing...";
     Tezos.setWalletProvider(wallet);
+
     const contract = await Tezos.wallet.at(contractAddress);
+    const transaction = await contract.methods
+      .deposit("")
+      .toTransferParams({
+        amount: depositAmount,
+      });
+    const estimate = await Tezos.estimate.transfer(transaction);
+
     await contract.methods
       .deposit("")
       .send({
-        gasLimit: 100000,
-        fee: 100000,
-        storageLimit: 1,
+        gasLimit: estimate.gasLimit,
+        fee: estimate.burnFeeMutez,
+        storageLimit: estimate.storageLimit,
         amount: depositAmount,
       })
       .then((op) => {
@@ -90,12 +98,7 @@
     const contract = await Tezos.wallet.at(contractAddress);
     await contract.methods
       .withdraw("")
-      .send({
-        gasLimit: 100000,
-        fee: 100000,
-        storageLimit: 1,
-        amount: 0,
-      })
+      .send()
       .then((op) => {
         console.log(`Waiting for ${op.opHash} to be confirmed...`);
         return op.confirmation(3).then(() => op.opHash);
