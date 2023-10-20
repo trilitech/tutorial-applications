@@ -1,0 +1,157 @@
+// Simplified NFT contract for dApp tutorial
+// Attepmting to make this FA2-compatible even though the tutorial may not get into operators and such to keep it simple
+
+archetype simple_nft
+
+// Counter for token ID
+variable next_token_id: nat = 0
+
+// Token metadata
+asset token_metadata to big_map {
+  ftoken_metadata   : nat;
+  token_id          : nat;
+  token_description : string;
+}
+
+// Ledger for recording token owners
+asset ledger identified by ltoken_id to big_map {
+  ltoken_id   : nat;
+  lowner      : address;
+}
+
+// List of operators
+asset operator identified by oaddr otoken oowner to big_map {
+  oaddr       : address;
+  otoken      : nat;
+  oowner      : address;
+}
+
+// Parameter to represent the destination of a transfer
+record transfer_destination {
+  to_dest           : address;
+  token_id_dest     : nat;
+  token_amount_dest : nat
+} as ((%to_, (token_id, amount)))
+
+// Parameter for transferring ownership
+record transfer_param {
+  tp_from : address;
+  tp_txs  : list<transfer_destination>;
+} as ((%from_, %txs))
+
+// Parameter for changing operators
+record operator_param {
+  opp_owner    : address;
+  opp_operator : address;
+  opp_token_id : nat
+} as ((owner, (operator, token_id)))
+
+enum update_op =
+| add_operator<operator_param>
+| remove_operator<operator_param>
+
+// Utility function to check that a transfer request is from someone who has the authority to transfer the NFT
+function check_authority(txs : list<transfer_param>) : bool {
+  var res = true;
+  for tx in txs do
+    const %from = tx.tp_from;
+    const tds = tx.tp_txs;
+    for td in tds do begin
+      res &=
+        if caller <> %from then
+          operator.contains((caller, td.token_id_dest, %from))
+        else
+          true;
+    end
+    done
+  done;
+  return res
+}
+
+// Errors
+constant TOKEN_UNDEFINED      : string = "Token ID not found"
+constant NOT_OWNER            : string = "Can only be called by the token owner"
+constant NOT_OPERATOR         : string = "You are not an operator for the token"
+
+// Mint an NFT and assign it to the requester
+entry mint(tokenDescription: string) {
+  ledger.add({
+    ltoken_id = next_token_id;
+    lowner = source
+  });
+  token_metadata.add_update(next_token_id, {
+    token_id = next_token_id;
+    token_description = tokenDescription
+  });
+  next_token_id += 1;
+}
+
+// Burn an NFT; can be called only by the owner of the NFT
+entry burn(tokenId: nat) {
+  constant {
+    token_owner ?is ledger[tokenId]?.lowner otherwise TOKEN_UNDEFINED;
+  }
+  require {
+    r: token_owner = source otherwise NOT_OWNER;
+  }
+  effect {
+    ledger.remove(tokenId);
+    token_metadata.remove(tokenId);
+  }
+}
+
+// Transfer an NFT; can be called only by the current owner of the NFT or operator
+entry %transfer (txs : list<transfer_param>) {
+  require {
+    r1: check_authority(txs)
+  }
+  effect {
+    for tx in txs do
+      const tds = tx.tp_txs;
+      for td in tds do begin
+        const tokenid = td.token_id_dest;
+        if td.token_amount_dest > 0
+        then ledger.update(tokenid, { lowner = td.to_dest })
+      end done
+    done
+  }
+}
+
+// Update the operators of an NFT; can be called only by the current owner of the NFT
+entry update_operators (upl : list<update_op>) {
+  effect {
+    for up in upl do
+      match up with
+      | add_operator(param) -> (* add *)
+        do_require(param.opp_owner = source , NOT_OWNER);
+        operator.put({param.opp_operator; param.opp_token_id; param.opp_owner})
+      | remove_operator(param) -> (* remove *)
+        do_require(param.opp_owner = source , NOT_OWNER);
+        operator.remove((param.opp_operator, param.opp_token_id, param.opp_owner))
+      end;
+    done;
+  }
+}
+
+record balance_of_request {
+  bo_owner : address;
+  btoken_id : nat;
+} as ((owner, token_id))
+
+record balance_of_response {
+  request : balance_of_request;
+  balance_ : nat;
+} as ((request, balance))
+
+function get_balance(br : balance_of_request) : nat {
+  const token ?= ledger[br.btoken_id] : TOKEN_UNDEFINED;
+  return (token.lowner = br.bo_owner ? 1 : 0)
+}
+
+// Get information about the NFTs
+getter balance_of (requests : list<balance_of_request>) : list<balance_of_response> {
+  return map(requests, br -> {
+    request = br;
+    balance_ = get_balance(br)
+  })
+}

@@ -1,0 +1,25 @@
+{
+  "name": "simple-nft-svelte",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^2.4.2",
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "svelte": "^4.0.5",
+    "vite": "^4.4.5",
+    "vite-compatible-readable-stream": "^3.6.1"
+  },
+  "dependencies": {
+    "@airgap/beacon-sdk": "^4.0.12",
+    "@taquito/beacon-wallet": "^17.3.1",
+    "@taquito/michelson-encoder": "^17.3.2",
+    "@taquito/taquito": "^17.3.1"
+  }
+}
