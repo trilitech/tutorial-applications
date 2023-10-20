@@ -1,5 +1,5 @@
 # Tutorial application: Mint NFTs from a web application
-This web application can interacting with the Tezos blockchain to mint Non-Fungible Tokens (NFTs). This is the completed application from the tutorial [Mint NFTs from a web application](https://docs.tezos.com/tutorials/mint-NFTs-from-a-web-application/).
+This web application interacts with the Tezos blockchain to mint Non-Fungible Tokens (NFTs). This is the completed application from the tutorial [Mint NFTs from a web application](https://docs.tezos.com/tutorials/mint-NFTs-from-a-web-application/).
 
 Follow these steps to run it:
 
