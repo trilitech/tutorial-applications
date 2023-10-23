@@ -58,15 +58,15 @@
     Tezos.setWalletProvider(wallet);
 
     const contract = await Tezos.wallet.at(contractAddress);
-    const transaction = await contract.methods
-      .deposit("")
+    const transactionParams = await contract.methods
+      .deposit()
       .toTransferParams({
-        amount: depositAmount,
-      });
-    const estimate = await Tezos.estimate.transfer(transaction);
+        amount: depositAmount
+    });
+    const estimate = await Tezos.estimate.transfer(transactionParams);
 
     await contract.methods
-      .deposit("")
+      .deposit()
       .send({
         gasLimit: estimate.gasLimit,
         fee: estimate.burnFeeMutez,
