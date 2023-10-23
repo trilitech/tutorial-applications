@@ -61,28 +61,24 @@
     const transactionParams = await contract.methods
       .deposit()
       .toTransferParams({
-        amount: depositAmount
-    });
+        amount: depositAmount,
+      });
     const estimate = await Tezos.estimate.transfer(transactionParams);
 
-    await contract.methods
-      .deposit()
-      .send({
-        gasLimit: estimate.gasLimit,
-        fee: estimate.burnFeeMutez,
-        storageLimit: estimate.storageLimit,
-        amount: depositAmount,
+    const operation = await Tezos.wallet
+      .transfer({
+        ...transactionParams,
+        ...estimate,
       })
-      .then((op) => {
-        console.log(`Waiting for ${op.opHash} to be confirmed...`);
-        return op.confirmation(2).then(() => op.opHash);
-      })
-      .then((hash) =>
-        console.log(`Operation injected: https://ghost.tzstats.com/${hash}`)
-      )
-      .catch((error) =>
-        console.log(`Error: ${JSON.stringify(error, null, 2)}`)
-      );
+      .send();
+
+    console.log(`Waiting for ${operation.opHash} to be confirmed...`);
+
+    await operation.confirmation(2);
+
+    console.log(
+      `Operation injected: https://ghost.tzstats.com/${operation.opHash}`
+    );
 
     await getWalletBalance(address);
     await getBankBalance(address);
@@ -96,19 +92,26 @@
 
     Tezos.setWalletProvider(wallet);
     const contract = await Tezos.wallet.at(contractAddress);
-    await contract.methods
-      .withdraw("")
-      .send()
-      .then((op) => {
-        console.log(`Waiting for ${op.opHash} to be confirmed...`);
-        return op.confirmation(2).then(() => op.opHash);
+
+    const transactionParams = await contract.methods
+      .withdraw()
+      .toTransferParams();
+    const estimate = await Tezos.estimate.transfer(transactionParams);
+
+    const operation = await Tezos.wallet
+      .transfer({
+        ...transactionParams,
+        ...estimate,
       })
-      .then((hash) =>
-        console.log(`Operation injected: https://ghost.tzstats.com/${hash}`)
-      )
-      .catch((error) =>
-        console.log(`Error: ${JSON.stringify(error, null, 2)}`)
-      );
+      .send();
+
+    console.log(`Waiting for ${operation.opHash} to be confirmed...`);
+
+    await operation.confirmation(2);
+
+    console.log(
+      `Operation injected: https://ghost.tzstats.com/${operation.opHash}`
+    );
 
     await getWalletBalance(address);
     await getBankBalance(address);
