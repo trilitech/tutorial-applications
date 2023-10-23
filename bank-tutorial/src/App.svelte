@@ -55,8 +55,8 @@
   const deposit = async () => {
     depositButtonActive = false;
     depositButtonLabel = "Depositing...";
-    Tezos.setWalletProvider(wallet);
 
+    Tezos.setWalletProvider(wallet);
     const contract = await Tezos.wallet.at(contractAddress);
     const transactionParams = await contract.methods
       .deposit()
