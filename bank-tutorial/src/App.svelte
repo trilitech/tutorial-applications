@@ -1,11 +1,10 @@
 <script>
   import { BeaconWallet } from "@taquito/beacon-wallet";
-  import { NetworkType } from "@airgap/beacon-sdk";
+  import { NetworkType } from "@airgap/beacon-types";
   import { TezosToolkit } from "@taquito/taquito";
 
   const rpcUrl = "https://ghostnet.ecadinfra.com";
   const Tezos = new TezosToolkit(rpcUrl);
-  const network = NetworkType.GHOSTNET;
   const contractAddress = "KT1R4i4qEaxF7v3zg1M8nTeyrqk8JFmdGLuu";
 
   let wallet;
@@ -23,11 +22,11 @@
   const connectWallet = async () => {
     const newWallet = new BeaconWallet({
       name: "Simple dApp tutorial",
-      preferredNetwork: network,
+      network: {
+        type: NetworkType.GHOSTNET,
+      },
     });
-    await newWallet.requestPermissions({
-      network: { type: network, rpcUrl },
-    });
+    await newWallet.requestPermissions();
     address = await newWallet.getPKH();
     await getWalletBalance(address);
     await getBankBalance(address);
