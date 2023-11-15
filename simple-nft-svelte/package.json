@@ -17,7 +17,7 @@
     "vite-compatible-readable-stream": "^3.6.1"
   },
   "dependencies": {
-    "@airgap/beacon-sdk": "^4.0.12",
+    "@airgap/beacon-types": "^4.0.12",
     "@taquito/beacon-wallet": "^17.3.1",
     "@taquito/michelson-encoder": "^17.3.2",
     "@taquito/taquito": "^17.3.1"
