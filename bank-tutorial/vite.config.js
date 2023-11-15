@@ -21,9 +21,9 @@ export default ({ command }) => {
     },
     resolve: {
       alias: {
-        "@airgap/beacon-sdk": path.resolve(
+        "@airgap/beacon-types": path.resolve(
           path.resolve(),
-          `./node_modules/@airgap/beacon-sdk/dist/${
+          `./node_modules/@airgap/beacon-types/dist/${
           isBuild ? "esm" : "cjs"
           }/index.js`
         ),
