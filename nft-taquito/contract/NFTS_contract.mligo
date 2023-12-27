@@ -362,7 +362,7 @@ permissions or constraints are violated.
 @param txs transfers to be applied to the ledger
 @param validate_op function that validates of the tokens from the particular owner can be transferred. 
  *)
-let transfer (txs, validate_op, ops_storage, ledger, reverse_ledger
+let transfer_nfts (txs, validate_op, ops_storage, ledger, reverse_ledger
     : (transfer list) * operator_validator * operator_storage * ledger * reverse_ledger) : ledger * reverse_ledger =
   (* process individual transfer *)
   let make_transfer = (fun ((l, rv_l), tx : (ledger * reverse_ledger) * transfer) ->
