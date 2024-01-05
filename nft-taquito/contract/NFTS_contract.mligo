@@ -338,7 +338,7 @@ type nft_token_storage = {
   admin: address;
 }
 
-type returnValue = operation list * nft_token_storage
+type return_value = operation list * nft_token_storage
 
 (** 
 Retrieve the balances for the specified tokens and owners
@@ -491,7 +491,7 @@ let burn (p, s: token_id * nft_token_storage): nft_token_storage =
 
 (** Transfer entrypoint *)
 [@entry]
-let transfer (txs : transfer list) (storage : nft_token_storage) : returnValue =
+let transfer (txs : transfer list) (storage : nft_token_storage) : return_value =
     let (new_ledger, new_reverse_ledger) = transfer_nfts
       (txs, default_operator_validator, storage.operators, storage.ledger, storage.reverse_ledger) in
     let new_storage = { storage with ledger = new_ledger; reverse_ledger = new_reverse_ledger } in
@@ -499,25 +499,25 @@ let transfer (txs : transfer list) (storage : nft_token_storage) : returnValue =
 
 (** Balance entrypoint *)
 [@entry]
-let balance_of (p : balance_of_param) (storage : nft_token_storage) : returnValue =
+let balance_of (p : balance_of_param) (storage : nft_token_storage) : return_value =
     let op = get_balance (p, storage.ledger) in
     [op], storage
 
 (** Update operators entrypoint *)
 [@entry]
-let update_operators (updates : update_operator list) (storage : nft_token_storage) : returnValue =
+let update_operators (updates : update_operator list) (storage : nft_token_storage) : return_value =
     let new_ops = fa2_update_operators (updates, storage.operators) in
     let new_storage = { storage with operators = new_ops; } in
     ([] : operation list), new_storage
 
 (** Mint NFT entrypoint *)
 [@entry]
-let mint (p : mint_params) (storage : nft_token_storage) : returnValue =
+let mint (p : mint_params) (storage : nft_token_storage) : return_value =
     ([]: operation list), mint (p, storage)
 
 (** Burn NFT entrypoint *)
 [@entry]
-let burn (p : token_id) (storage : nft_token_storage) : returnValue =
+let burn (p : token_id) (storage : nft_token_storage) : return_value =
     ([]: operation list), burn (p, storage)
 
 (*
