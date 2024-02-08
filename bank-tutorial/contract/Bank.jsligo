@@ -8,22 +8,20 @@ namespace Bank {
   // Deposit endpoint: send a certain amount of tez to be deposited
   @entry
   const deposit = (_: unit, store : map_type): return_type => {
-    // Verify that the sender sent tokens
+    // Verify that the sender sent tez
     if (Tezos.get_amount() <= (0 as tez)) {
       return failwith("Send some tez to this entrypoint.");
     }
     // Get the sender's current balance, if any
     const balance_option = Big_map.find_opt(Tezos.get_sender(), store);
     // Get the new balance
-    const new_balance: tez = match(balance_option, {
-      Some: (current_balance: tez) =>
+    const new_balance =
+      match(balance_option) {
         // Sender has a previous balance
-        current_balance + Tezos.get_amount(),
-      None: () =>
+        when(Some(current_balance)): current_balance + Tezos.get_amount();
         // Sender has a 0 balance
-        Tezos.get_amount()
-    });
-    // Update the map
+        when(None()): Tezos.get_amount();
+      }
     const updated_map = Big_map.update(Tezos.get_sender(), Some(new_balance), store);
 
     return [list([]), updated_map];
@@ -32,27 +30,24 @@ namespace Bank {
   // Withdraw the tez that the account has deposited
   @entry
   const withdraw = (_: unit, store : map_type): return_type => {
-    // Verify that the sender did not send tokens
+    // Verify that the sender did not send tez
     if (Tezos.get_amount() > (0 as tez)) {
       return failwith("Do not send tez to this entrypoint");
     }
     // Get the sender's current balance, if any
     const balance_option = Big_map.find_opt(Tezos.get_sender(), store);
-    // Get the new balance
-    return match(balance_option, {
-      Some: (current_balance: tez) => {
+    return match(balance_option) {
+      when(Some(current_balance)): do {
         // Sender has a previous balance
         // Update the map
         const updated_map = Big_map.remove(Tezos.get_sender(), store);
         // Send tez to the account
         const payment: operation = Tezos.transaction(unit, current_balance, Tezos.get_contract_with_error(Tezos.get_sender(), "Account not found"));
         return [list([payment]), updated_map];
-      },
-      None: () => {
+      };
         // Sender has a 0 balance
-        return failwith("You do not currently have a balance.")
-      }
-    });
+      when(None()): failwith("You do not currently have a balance.");
+    };
   }
 
   // Get the user's balance
@@ -60,9 +55,9 @@ namespace Bank {
   const balance = (account: address, store: map_type): tez => {
     // Get the sender's current balance, if any
     const balance_option = Big_map.find_opt(account, store);
-    return match(balance_option, {
-      Some: (current_balance: tez) => current_balance,
-      None: () => 0 as tez,
-    });
+    return match(balance_option) {
+      when(Some(current_balance)): current_balance;
+      when(None()): 0 as tez;
+    };
   }
 }
