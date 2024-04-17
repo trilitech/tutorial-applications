@@ -253,6 +253,6 @@ def test():
     scenario.verify(
         _get_balance(contract, sp.record(owner=alice.address, token_id=2)) == 4
     )
-
-
-
+    scenario.verify(
+        _total_supply(contract, sp.record(token_id=2)) == 4
+    )
