@@ -10,8 +10,8 @@ def my_module():
 
     conversion_type: type = sp.record(
         source_token_id = sp.nat,  # The ID of the source token
-        amount = sp.nat, # The number of source tokens to convert
         target_token_id = sp.nat, # The ID of the target token
+        amount = sp.nat, # The number of source tokens to convert
     )
 
     # Order of inheritance: [Admin], [<policy>], <base class>, [<other mixins>].
@@ -37,10 +37,11 @@ def my_module():
             # Initialize administrative permissions
             main.Admin.__init__(self, admin_address)
 
+        # Convert one token into another
         @sp.entrypoint
         def convert(self, conversion):
             sp.cast(conversion, conversion_type)
-            record(source_token_id, amount, target_token_id).match = conversion
+            record(source_token_id, target_token_id, amount).match = conversion
 
             # Verify that transfers are allowed
             assert self.private.policy.supports_transfer, "FA2_TX_DENIED"
@@ -308,7 +309,7 @@ def test():
 
     # Verify that you can convert your own tokens
     contract.convert(
-        sp.record(source_token_id = 0, amount = 2, target_token_id = 1),
+        sp.record(source_token_id = 0, target_token_id = 1, amount = 2),
         _sender=alice
     )
     scenario.verify(
