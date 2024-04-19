@@ -1,7 +1,7 @@
 import smartpy as sp
 from smartpy.templates import fa2_lib as fa2
 
-# Main template for FA2 contracts
+# Alias the main template for FA2 contracts
 main = fa2.main
 
 
@@ -11,7 +11,7 @@ def my_module():
         main.Fungible,
         main.OnchainviewBalanceOf,
     ):
-        def __init__(self, admin_address, contract_metadata, ledger, token_metadata):
+        def __init__(self, contract_metadata, ledger, token_metadata):
 
             # Initialize on-chain balance view
             main.OnchainviewBalanceOf.__init__(self)
@@ -35,10 +35,8 @@ def test():
     # Create and configure the test scenario
     # Import the types from the FA2 library, the library itself, and the contract module, in that order.
     scenario = sp.test_scenario("fa2_lib_fungible", [fa2.t, fa2.main, my_module])
-    scenario.h1("FA2 fungible token contract test")
 
     # Define test accounts
-    admin = sp.test_account("Admin")
     alice = sp.test_account("Alice")
     bob = sp.test_account("Bob")
 
@@ -54,7 +52,7 @@ def test():
     initial_ledger = sp.update_map(sp.pair(bob.address, 1), sp.Some(10), initial_ledger)
 
     # Instantiate the FA2 fungible token contract
-    contract = my_module.MyFungibleContract(admin.address, sp.big_map(), initial_ledger, [tok0_md, tok1_md])
+    contract = my_module.MyFungibleContract(sp.big_map(), initial_ledger, [tok0_md, tok1_md])
 
     # Build contract metadata content
     contract_metadata = sp.create_tzip16_metadata(
