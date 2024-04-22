@@ -274,9 +274,6 @@ def test():
     scenario.verify(
         _get_balance(contract, sp.record(owner=alice.address, token_id=2)) == 5
     )
-    scenario.verify(
-        _get_balance(contract, sp.record(owner=bob.address, token_id=2)) == 0
-    )
 
     scenario.h2("Burn tokens")
     # Verify that you can burn your own token

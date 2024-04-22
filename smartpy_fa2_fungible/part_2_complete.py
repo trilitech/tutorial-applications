@@ -145,3 +145,69 @@ def test():
         _sender=bob,
         _valid=False,
     )
+
+    scenario.h2("Mint tokens")
+
+    # Mint more of an existing token
+    contract.mint(
+        [
+            sp.record(to_=alice.address, amount=4, token=sp.variant("existing", 0)),
+            sp.record(to_=bob.address, amount=4, token=sp.variant("existing", 1)),
+        ],
+        _sender=admin,
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=0)) == 10
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=bob.address, token_id=0)) == 4
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=1)) == 3
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=bob.address, token_id=1)) == 11
+    )
+    scenario.verify(_total_supply(contract, sp.record(token_id=0)) == 14)
+    scenario.verify(_total_supply(contract, sp.record(token_id=1)) == 14)
+
+    # Other users can't mint tokens
+    contract.mint(
+        [
+            sp.record(to_=alice.address, amount=4, token=sp.variant("existing", 0)),
+        ],
+        _sender=alice,
+        _valid=False
+    )
+
+    # Create a token type
+    tok2_md = fa2.make_metadata(name="Token Two", decimals=0, symbol="Tok2")
+    contract.mint(
+        [
+            sp.record(to_=alice.address, amount=5, token=sp.variant("new", tok2_md)),
+        ],
+        _sender=admin,
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=2)) == 5
+    )
+
+    scenario.h2("Burn tokens")
+
+    # Verify that you can burn your own token
+    contract.burn([sp.record(token_id=2, from_=alice.address, amount=1)], _sender=alice)
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=2)) == 4
+    )
+    # Verify that you can't burn someone else's token
+    contract.burn(
+        [sp.record(token_id=2, from_=alice.address, amount=1)],
+        _sender=bob,
+        _valid=False,
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=2)) == 4
+    )
+    scenario.verify(
+        _total_supply(contract, sp.record(token_id=2)) == 4
+    )
