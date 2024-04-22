@@ -104,11 +104,10 @@ def test():
     tok1_md = fa2.make_metadata(name="Token One", decimals=0, symbol="Tok1")
 
     # Define tokens and initial owners
-    # ledger_fungible: type = sp.big_map[sp.pair[sp.address, sp.nat], sp.nat]
-    initial_ledger = sp.map() # If I use big_map here it fails
-    sp.cast(initial_ledger, fa2.t.ledger_fungible)
-    initial_ledger = sp.update_map(sp.pair(alice.address, 0), sp.Some(10), initial_ledger)
-    initial_ledger = sp.update_map(sp.pair(bob.address, 1), sp.Some(10), initial_ledger)
+    initial_ledger = {
+        (alice.address, 0): 10,
+        (bob.address, 1): 10,
+    }
 
     # Instantiate the FA2 fungible token contract
     contract = my_module.MyFungibleContract(admin.address, sp.big_map(), initial_ledger, [tok0_md, tok1_md])
