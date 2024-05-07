@@ -70,12 +70,8 @@ def my_module():
             from_target = (sp.sender, target_token_id)
 
             # Mint the target tokens
-            is_target = self.data.ledger.get_opt(from_target)
-            with sp.match(is_target):
-                with sp.case.Some as target_amount:
-                    self.data.ledger[from_target] = amount + target_amount
-                with None:
-                    self.data.ledger[from_target] = amount
+            target_amount = self.data.ledger.get(from_target, default=0)
+            self.data.ledger[from_target] = amount + target_amount
             self.data.supply[target_token_id] += amount
 
 def _get_balance(fa2_contract, args):
