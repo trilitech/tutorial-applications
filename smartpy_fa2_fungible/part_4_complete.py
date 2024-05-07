@@ -14,6 +14,8 @@ def my_module():
         amount = sp.nat, # The number of source tokens to convert
     )
 
+    conversion_batch: type = sp.list[conversion_type]
+
     # Order of inheritance: [Admin], [<policy>], <base class>, [<other mixins>].
     class MyFungibleContract(
         main.Admin,
@@ -39,40 +41,43 @@ def my_module():
 
         # Convert one token into another
         @sp.entrypoint
-        def convert(self, conversion):
-            sp.cast(conversion, conversion_type)
-            record(source_token_id, target_token_id, amount).match = conversion
+        def convert(self, batch):
+            sp.cast(batch, conversion_batch)
 
-            # Verify that transfers are allowed
-            assert self.private.policy.supports_transfer, "FA2_TX_DENIED"
-            # Verify that the source and target tokens exist
-            assert self.is_defined_(source_token_id), "FA2_TOKEN_UNDEFINED"
-            assert self.is_defined_(target_token_id), "FA2_TOKEN_UNDEFINED"
+            for conversion in batch:
 
-            # Get a pair to represent the key for the ledger for the source tokens
-            from_source = (sp.sender, source_token_id)
+                record(source_token_id, target_token_id, amount).match = conversion
 
-            # Burn the source tokens
-            self.data.ledger[from_source] = sp.as_nat(
-                self.data.ledger.get(from_source, default=0) - amount,
-                error="FA2_INSUFFICIENT_BALANCE",
-            )
-            is_supply = sp.is_nat(
-                self.data.supply.get(source_token_id, default=0) - amount
-            )
-            with sp.match(is_supply):
-                with sp.case.Some as supply:
-                    self.data.supply[source_token_id] = supply
-                with None:
-                    self.data.supply[source_token_id] = 0
+                # Verify that transfers are allowed
+                assert self.private.policy.supports_transfer, "FA2_TX_DENIED"
+                # Verify that the source and target tokens exist
+                assert self.is_defined_(source_token_id), "FA2_TOKEN_UNDEFINED"
+                assert self.is_defined_(target_token_id), "FA2_TOKEN_UNDEFINED"
 
-            # Get a pair to represent the key for the ledger for the target tokens
-            from_target = (sp.sender, target_token_id)
+                # Get a pair to represent the key for the ledger for the source tokens
+                from_source = (sp.sender, source_token_id)
 
-            # Mint the target tokens
-            target_amount = self.data.ledger.get(from_target, default=0)
-            self.data.ledger[from_target] = amount + target_amount
-            self.data.supply[target_token_id] += amount
+                # Burn the source tokens
+                self.data.ledger[from_source] = sp.as_nat(
+                    self.data.ledger.get(from_source, default=0) - amount,
+                    error="FA2_INSUFFICIENT_BALANCE",
+                )
+                is_supply = sp.is_nat(
+                    self.data.supply.get(source_token_id, default=0) - amount
+                )
+                with sp.match(is_supply):
+                    with sp.case.Some as supply:
+                        self.data.supply[source_token_id] = supply
+                    with None:
+                        self.data.supply[source_token_id] = 0
+
+                # Get a pair to represent the key for the ledger for the target tokens
+                from_target = (sp.sender, target_token_id)
+
+                # Mint the target tokens
+                target_amount = self.data.ledger.get(from_target, default=0)
+                self.data.ledger[from_target] = amount + target_amount
+                self.data.supply[target_token_id] += amount
 
 def _get_balance(fa2_contract, args):
     """Utility function to call the contract's get_balance view to get an account's token balance."""
@@ -293,8 +298,11 @@ def test():
     scenario.h2("Convert tokens")
 
     # Verify that you can convert your own tokens
-    contract.convert(
+    conversions = [
         sp.record(source_token_id = 0, target_token_id = 1, amount = 2),
+    ]
+    contract.convert(
+        conversions,
         _sender=alice
     )
     scenario.verify(
