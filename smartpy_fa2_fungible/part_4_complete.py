@@ -10,8 +10,8 @@ def my_module():
 
     conversion_type: type = sp.record(
         source_token_id = sp.nat,  # The ID of the source token
-        target_token_id = sp.nat, # The ID of the target token
-        amount = sp.nat, # The number of source tokens to convert
+        target_token_id = sp.nat,  # The ID of the target token
+        amount = sp.nat,  # The number of source tokens to convert
     )
 
     conversion_batch: type = sp.list[conversion_type]
