@@ -9,6 +9,7 @@ main = fa2.main
 def my_module():
 
     conversion_type: type = sp.record(
+        from_ = sp.address,  # Account to convert tokens from
         source_token_id = sp.nat,  # The ID of the source token
         target_token_id = sp.nat,  # The ID of the target token
         amount = sp.nat,  # The number of source tokens to convert
@@ -46,7 +47,12 @@ def my_module():
 
             for conversion in batch:
 
-                record(source_token_id, target_token_id, amount).match = conversion
+                record(
+                    from_,
+                    source_token_id,
+                    target_token_id,
+                    amount
+                ).match = conversion
 
                 # Verify that transfers are allowed
                 assert self.private.policy.supports_transfer, "FA2_TX_DENIED"
@@ -54,8 +60,15 @@ def my_module():
                 assert self.is_defined_(source_token_id), "FA2_TOKEN_UNDEFINED"
                 assert self.is_defined_(target_token_id), "FA2_TOKEN_UNDEFINED"
 
+                # Verify that the sender is either the owner or the operator of the source tokens
+                assert (sp.sender == from_) or self.data.operators.contains(
+                    sp.record(
+                        owner=from_, operator=sp.sender, token_id=source_token_id
+                    )
+                ), "FA2_NOT_OPERATOR"
+
                 # Get a pair to represent the key for the ledger for the source tokens
-                from_source = (sp.sender, source_token_id)
+                from_source = (from_, source_token_id)
 
                 # Burn the source tokens
                 self.data.ledger[from_source] = sp.as_nat(
@@ -72,7 +85,7 @@ def my_module():
                         self.data.supply[source_token_id] = 0
 
                 # Get a pair to represent the key for the ledger for the target tokens
-                from_target = (sp.sender, target_token_id)
+                from_target = (from_, target_token_id)
 
                 # Mint the target tokens
                 target_amount = self.data.ledger.get(from_target, default=0)
@@ -299,7 +312,7 @@ def test():
 
     # Verify that you can convert your own tokens
     conversions = [
-        sp.record(source_token_id = 0, target_token_id = 1, amount = 2),
+        sp.record(from_ = alice.address, source_token_id = 0, target_token_id = 1, amount = 2),
     ]
     contract.convert(
         conversions,
@@ -313,3 +326,11 @@ def test():
     )
     scenario.verify(_total_supply(contract, sp.record(token_id=0)) == 12)
     scenario.verify(_total_supply(contract, sp.record(token_id=1)) == 16)
+
+    # Verify that you can't convert someone else's tokens
+    contract.convert(
+        conversions,
+        _sender=bob,
+        _valid=False,
+        _exception="FA2_NOT_OPERATOR"
+    )
