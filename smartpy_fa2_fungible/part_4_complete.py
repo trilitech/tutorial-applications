@@ -334,3 +334,25 @@ def test():
         _valid=False,
         _exception="FA2_NOT_OPERATOR"
     )
+
+    # Make Bob an operator of Alice's token 0
+    operator_update = sp.record(owner=alice.address, operator=bob.address, token_id=0)
+    contract.update_operators(
+        [
+            sp.variant.add_operator(operator_update)
+        ],
+        _sender=alice
+    )
+    # Have Bob convert Alice's tokens
+    contract.convert(
+        conversions,
+        _sender=bob
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=0)) == 6
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=1)) == 7
+    )
+    scenario.verify(_total_supply(contract, sp.record(token_id=0)) == 10)
+    scenario.verify(_total_supply(contract, sp.record(token_id=1)) == 18)
