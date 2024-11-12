@@ -10,9 +10,11 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@taqueria/plugin-contract-types": "^0.62.0",
-    "@taqueria/plugin-ligo": "^0.62.0",
-    "@taqueria/plugin-octez-client": "^0.62.0",
-    "@taqueria/plugin-taquito": "^0.62.0"
+    "@taqueria/plugin-contract-types": "^0.64.0",
+    "@taqueria/plugin-ligo": "^0.64.0",
+    "@taqueria/plugin-octez-client": "^0.64.0",
+    "@taqueria/plugin-taquito": "^0.64.0"
   }
 }
+
+
