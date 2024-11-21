@@ -1,0 +1,146 @@
+#import "proxy.jsligo" "Contract"
+
+const initProxyWithV1: parameter_of Contract =
+    Upgrade(
+        [
+            list(
+                [
+                    {
+                        name: "Poke",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Poke",
+                                addr: "KT1CAPVEnhs343RocVMbySXdoUEFh4HqRsjK" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "PokeAndGetFeedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "PokeAndGetFeedback",
+                                addr: "KT1CAPVEnhs343RocVMbySXdoUEFh4HqRsjK" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "Init",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Init",
+                                addr: "KT1CAPVEnhs343RocVMbySXdoUEFh4HqRsjK" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "changeVersion",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "changeVersion",
+                                addr: "KT1CAPVEnhs343RocVMbySXdoUEFh4HqRsjK" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "feedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "feedback",
+                                addr: "KT1CAPVEnhs343RocVMbySXdoUEFh4HqRsjK" as
+                                    address
+                            }
+                        )
+                    }
+                ]
+            ) as list<Contract.entrypointOperation>,
+            None() as option<Contract.changeVersion>
+        ]
+    );
+
+const initProxyWithV2: parameter_of Contract =
+    Upgrade(
+        [
+            list(
+                [
+                    {
+                        name: "Poke",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Poke",
+                                addr: "KT1VBVUssMuZ7wC3KgeYJYmmGtnBRmzWpStm" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "PokeAndGetFeedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "PokeAndGetFeedback",
+                                addr: "KT1VBVUssMuZ7wC3KgeYJYmmGtnBRmzWpStm" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "Init",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "Init",
+                                addr: "KT1VBVUssMuZ7wC3KgeYJYmmGtnBRmzWpStm" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "changeVersion",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "changeVersion",
+                                addr: "KT1VBVUssMuZ7wC3KgeYJYmmGtnBRmzWpStm" as
+                                    address
+                            }
+                        )
+                    },
+                    {
+                        name: "feedback",
+                        isRemoved: false,
+                        entrypoint: Some(
+                            {
+                                method: "feedback",
+                                addr: "KT1VBVUssMuZ7wC3KgeYJYmmGtnBRmzWpStm" as
+                                    address
+                            }
+                        )
+                    }
+                ]
+            ) as list<Contract.entrypointOperation>,
+            None() as option<Contract.changeVersion>
+        ]
+    );
+
+const changeVersionV1ToV2: parameter_of Contract =
+    Upgrade(
+        [
+            list([]) as list<Contract.entrypointOperation>,
+            Some(
+                {
+                    oldAddr: "KT1CAPVEnhs343RocVMbySXdoUEFh4HqRsjK" as address,
+                    newAddr: "KT1VBVUssMuZ7wC3KgeYJYmmGtnBRmzWpStm" as address
+                }
+            ) as option<Contract.changeVersion>
+        ]
+    );

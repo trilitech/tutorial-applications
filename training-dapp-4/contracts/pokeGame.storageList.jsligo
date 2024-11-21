@@ -1,0 +1,27 @@
+#import "pokeGame.jsligo" "Contract"
+
+const default_storage: Contract.storage = {
+    pokeTraces: Map.empty as map<address, Contract.pokeMessage>,
+    feedback: "kiss",
+    ticketOwnership: Map.empty as map<address, ticket<string>>, //ticket of claims
+    tzip18: {
+        proxy: "KT1CqAgwS5ypEV5UAMiA7wT9je7iS7othdyf" as address,
+        version: 1 as nat,
+        contractPrevious: None() as option<address>,
+        contractNext: None() as option<address>
+    }
+};
+
+const storageV2: Contract.storage = {
+    pokeTraces: Map.empty as map<address, Contract.pokeMessage>,
+    feedback: "hello",
+    ticketOwnership: Map.empty as map<address, ticket<string>>,
+    tzip18: {
+        proxy: "KT1CqAgwS5ypEV5UAMiA7wT9je7iS7othdyf" as address,
+        version: 2 as nat,
+        contractPrevious: Some(
+            "KT1CAPVEnhs343RocVMbySXdoUEFh4HqRsjK" as address
+        ) as option<address>,
+        contractNext: None() as option<address>,
+    },
+};
