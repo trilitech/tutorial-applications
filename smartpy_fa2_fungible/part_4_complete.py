@@ -7,6 +7,7 @@ main = fa2.main
 
 @sp.module
 def my_module():
+    import main
 
     conversion_type: type = sp.record(
         source_token_id = sp.nat,  # The ID of the source token
@@ -92,8 +93,7 @@ def _total_supply(fa2_contract, args):
 @sp.add_test()
 def test():
     # Create and configure the test scenario
-    # Import the types from the FA2 library, the library itself, and the contract module, in that order.
-    scenario = sp.test_scenario("fa2_lib_fungible", [fa2.t, fa2.main, my_module])
+    scenario = sp.test_scenario("fa2_lib_fungible", my_module)
 
     # Define test accounts
     admin = sp.test_account("Admin")
