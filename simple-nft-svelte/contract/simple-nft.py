@@ -6,6 +6,8 @@ import smartpy as sp
 
 @sp.module
 def main():
+    import sp.utils as utils
+
     balance_of_args: type = sp.record(
         requests=sp.list[sp.record(owner=sp.address, token_id=sp.nat)],
         callback=sp.contract[
@@ -228,9 +230,9 @@ if "templates" not in __name__:
         """Helper function to build metadata JSON bytes values."""
         return sp.map(
             l={
-                "decimals": sp.utils.bytes_of_string("%d" % decimals),
-                "name": sp.utils.bytes_of_string(name),
-                "symbol": sp.utils.bytes_of_string(symbol),
+                "decimals": utils.bytes_of_string("%d" % decimals),
+                "name": utils.bytes_of_string(name),
+                "symbol": utils.bytes_of_string(symbol),
             }
         )
 
@@ -242,16 +244,16 @@ if "templates" not in __name__:
 
     @sp.add_test(name="Minimal test")
     def test():
-        scenario = sp.test_scenario(main)
+        scenario = sp.test_scenario("test_simple_nft", main)
         c1 = main.Fa2NftMinimal(
-            sp.utils.metadata_of_url("https://cloudflare-ipfs.com/ipfs/QmW8jPMdBmFvsSEoLWPPhaozN6jGQFxxkwuMLtVFqEy6Fb")
+            utils.metadata_of_url("https://cloudflare-ipfs.com/ipfs/QmW8jPMdBmFvsSEoLWPPhaozN6jGQFxxkwuMLtVFqEy6Fb")
         )
         scenario += c1
 
     from templates import fa2_lib_testing as testing
 
     c1 = main.Fa2NftMinimalTest(
-        metadata=sp.utils.metadata_of_url("https://cloudflare-ipfs.com/ipfs/QmW8jPMdBmFvsSEoLWPPhaozN6jGQFxxkwuMLtVFqEy6Fb"),
+        metadata=utils.metadata_of_url("https://cloudflare-ipfs.com/ipfs/QmW8jPMdBmFvsSEoLWPPhaozN6jGQFxxkwuMLtVFqEy6Fb"),
         ledger=sp.big_map({0: alice.address, 1: alice.address, 2: alice.address}),
         token_metadata=sp.big_map(
             {
