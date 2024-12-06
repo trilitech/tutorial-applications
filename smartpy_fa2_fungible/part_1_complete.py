@@ -7,6 +7,8 @@ main = fa2.main
 
 @sp.module
 def my_module():
+    import main
+
     class MyFungibleContract(
         main.Fungible,
         main.OnchainviewBalanceOf,
@@ -32,8 +34,7 @@ def _total_supply(fa2_contract, args):
 @sp.add_test()
 def test():
     # Create and configure the test scenario
-    # Import the types from the FA2 library, the library itself, and the contract module, in that order.
-    scenario = sp.test_scenario("fa2_lib_fungible", [fa2.t, fa2.main, my_module])
+    scenario = sp.test_scenario("fa2_lib_fungible", my_module)
 
     # Define test accounts
     alice = sp.test_account("Alice")
