@@ -1,272 +1,203 @@
 import smartpy as sp
+from smartpy.templates import fa2_lib as fa2
 
-# FA2 standard: https://gitlab.com/tezos/tzip/-/blob/master/proposals/tzip-12/tzip-12.md
-# Documentation: https://smartpy.io/guides/FA2-lib/overview
+# Main template for FA2 contracts
+main = fa2.main
 
 
 @sp.module
-def main():
-    import sp.utils as utils
+def my_module():
+    import main
 
-    balance_of_args: type = sp.record(
-        requests=sp.list[sp.record(owner=sp.address, token_id=sp.nat)],
-        callback=sp.contract[
-            sp.list[
-                sp.record(
-                    request=sp.record(owner=sp.address, token_id=sp.nat), balance=sp.nat
-                ).layout(("request", "balance"))
-            ]
-        ],
-    ).layout(("requests", "callback"))
+    # Order of inheritance: [Admin], [<policy>], <base class>, [<other mixins>].
+    class MyNFTContract(
+        main.Nft,
+        main.MintNft,
+        main.BurnNft,
+        main.OnchainviewBalanceOf,
+    ):
+        def __init__(self, admin_address, contract_metadata, ledger, token_metadata):
+            """Initializes the contract with administrative permissions and NFT functionalities.
+            The base class is required; all mixins are optional.
+            The initialization must follow this order:
 
-    class Fa2NftMinimal(sp.Contract):
-        """Minimal FA2 contract for NFTs.
-
-        This is a minimal self contained implementation example showing how to
-        implement an NFT contract following the FA2 standard in SmartPy. It is for
-        illustrative purposes only. For a more flexible toolbox aimed at real world
-        applications please refer to FA2_lib."
-        """
-
-        def __init__(self, metadata):
-            self.data.ledger = sp.cast(sp.big_map(), sp.big_map[sp.nat, sp.address])
-            self.data.metadata = metadata
-            self.data.next_token_id = sp.nat(0)
-            self.data.operators = sp.cast(
-                sp.big_map(),
-                sp.big_map[
-                    sp.record(
-                        owner=sp.address,
-                        operator=sp.address,
-                        token_id=sp.nat,
-                    ).layout(("owner", ("operator", "token_id"))),
-                    sp.unit,
-                ],
-            )
-            self.data.token_metadata = sp.cast(
-                sp.big_map(),
-                sp.big_map[
-                    sp.nat,
-                    sp.record(token_id=sp.nat, token_info=sp.map[sp.string, sp.bytes]),
-                ],
-            )
-
-            # TODO: pass metadata_base as an argument
-            # metadata_base["views"] = [
-            #     self.all_tokens,
-            #     self.get_balance,
-            #     self.is_operator,
-            #     self.total_supply,
-            # ]
-            # self.init_metadata("metadata_base", metadata_base)
-
-        @sp.entrypoint
-        def transfer(self, batch):
-            """Accept a list of transfer operations.
-
-            Each transfer operation specifies a source: `from_` and a list
-            of transactions. Each transaction specifies the destination: `to_`,
-            the `token_id` and the `amount` to be transferred.
-
-            Args:
-                batch: List of transfer operations.
-            Raises:
-                `FA2_TOKEN_UNDEFINED`, `FA2_NOT_OPERATOR`, `FA2_INSUFFICIENT_BALANCE`
+            - Other mixins such as OnchainviewBalanceOf, MintNFT, and BurnNFT
+            - Base class: NFT
+            - Transfer policy
+            - Admin
             """
-            for transfer in batch:
-                for tx in transfer.txs:
-                    sp.cast(
-                        tx,
-                        sp.record(
-                            to_=sp.address, token_id=sp.nat, amount=sp.nat
-                        ).layout(("to_", ("token_id", "amount"))),
-                    )
-                    assert tx.token_id < self.data.next_token_id, "FA2_TOKEN_UNDEFINED"
-                    assert transfer.from_ == sp.sender or self.data.operators.contains(
-                        sp.record(
-                            owner=transfer.from_,
-                            operator=sp.sender,
-                            token_id=tx.token_id,
-                        )
-                    ), "FA2_NOT_OPERATOR"
-                    if tx.amount > 0:
-                        assert (
-                            tx.amount == 1
-                            and self.data.ledger[tx.token_id] == transfer.from_
-                        ), "FA2_INSUFFICIENT_BALANCE"
-                        self.data.ledger[tx.token_id] = tx.to_
 
-        @sp.entrypoint
-        def update_operators(self, actions):
-            """Accept a list of variants to add or remove operators.
+            # Initialize on-chain balance view
+            main.OnchainviewBalanceOf.__init__(self)
 
-            Operators can perform transfer on behalf of the owner.
-            Owner is a Tezos address which can hold tokens.
+            # Initialize the NFT-specific entrypoints
+            main.BurnNft.__init__(self)
+            main.MintNft.__init__(self)
 
-            Only the owner can change its operators.
+            # Initialize the NFT base class
+            main.Nft.__init__(self, contract_metadata, ledger, token_metadata)
 
-            Args:
-                actions: List of operator update actions.
-            Raises:
-                `FA2_NOT_OWNER`
-            """
-            for action in actions:
-                with sp.match(action):
-                    with sp.case.add_operator as operator:
-                        assert operator.owner == sp.sender, "FA2_NOT_OWNER"
-                        self.data.operators[operator] = ()
-                    with sp.case.remove_operator as operator:
-                        assert operator.owner == sp.sender, "FA2_NOT_OWNER"
-                        del self.data.operators[operator]
-
-        @sp.entrypoint
-        def balance_of(self, param):
-            """Send the balance of multiple account / token pairs to a callback
-            address.
-
-            transfer 0 mutez to `callback` with corresponding response.
-
-            Args:
-                callback (contract): Where to callback the answer.
-                requests: List of requested balances.
-            Raises:
-                `FA2_TOKEN_UNDEFINED`, `FA2_CALLBACK_NOT_FOUND`
-            """
-            sp.cast(param, balance_of_args)
-            balances = []
-            for req in param.requests:
-                assert req.token_id < self.data.next_token_id, "FA2_TOKEN_UNDEFINED"
-                balances.push(
-                    sp.record(
-                        request=sp.record(owner=req.owner, token_id=req.token_id),
-                        balance=(
-                            1 if self.data.ledger[req.token_id] == req.owner else 0
-                        ),
-                    )
-                )
-
-            sp.transfer(reversed(balances), sp.mutez(0), param.callback)
-
-        @sp.entrypoint
-        def mint(self, to_, metadata):
-            """Create a new token with an incremented id and assign
-            it. to `to_`.
-
-            Args:
-                to_ (address): Receiver of the tokens.
-                metadata (map of string bytes): Metadata of the token.
-            Raises:
-                `FA2_NOT_ADMIN`
-            """
-            token_id = self.data.next_token_id
-            self.data.token_metadata[token_id] = sp.record(
-                token_id=token_id, token_info=metadata
-            )
-            self.data.ledger[token_id] = to_
-            self.data.next_token_id += 1
-
-        @sp.offchain_view
-        def all_tokens(self):
-            """Return the list of all the `token_id` known to the contract."""
-            return sp.range(0, self.data.next_token_id)
-
-        @sp.offchain_view
-        def get_balance(self, params):
-            """Return the balance of an address for the specified `token_id`."""
-            sp.cast(
-                params,
-                sp.record(owner=sp.address, token_id=sp.nat).layout(
-                    ("owner", "token_id")
-                ),
-            )
-            assert params.token_id < self.data.next_token_id, "FA2_TOKEN_UNDEFINED"
-            return 1 if self.data.ledger[params.token_id] == params.owner else 0
-
-        @sp.offchain_view
-        def total_supply(self, params):
-            """Return the total number of tokens for the given `token_id` if known
-            or fail if not."""
-            assert params.token_id < self.data.next_token_id, "FA2_TOKEN_UNDEFINED"
-            return 1
-
-        @sp.offchain_view
-        def is_operator(self, params):
-            """Return whether `operator` is allowed to transfer `token_id` tokens
-            owned by `owner`."""
-            return self.data.operators.contains(params)
-
-    class Fa2NftMinimalTest(Fa2NftMinimal):
-        def __init__(
-            self, metadata, ledger, token_metadata, next_token_id
-        ):
-            Fa2NftMinimal.__init__(self, metadata)
-
-            self.data.next_token_id = next_token_id
-            self.data.ledger = ledger
-            self.data.token_metadata = token_metadata
+def _get_balance(fa2_contract, args):
+    """Utility function to call the contract's get_balance view to get an account's token balance."""
+    return sp.View(fa2_contract, "get_balance")(args)
 
 
-# metadata_base = {
-#     "name": "FA2 NFT minimal",
-#     "version": "1.0.0",
-#     "description": "This is a minimal implementation of FA2 (TZIP-012) using SmartPy.",
-#     "interfaces": ["TZIP-012", "TZIP-016"],
-#     "authors": ["SmartPy <https://smartpy.io/#contact>"],
-#     "homepage": "https://smartpy.io/ide?template=fa2_nft_minimal.py",
-#     "source": {
-#         "tools": ["SmartPy"],
-#         "location": "https://gitlab.com/SmartPy/smartpy/-/raw/master/python/templates/fa2_nft_minimal.py",
-#     },
-#     "permissions": {
-#         "operator": "owner-or-operator-transfer",
-#         "receiver": "owner-no-hook",
-#         "sender": "owner-no-hook",
-#     },
-# }
-
-if "templates" not in __name__:
-
-    def make_metadata(symbol, name, decimals):
-        """Helper function to build metadata JSON bytes values."""
-        return sp.map(
-            l={
-                "decimals": utils.bytes_of_string("%d" % decimals),
-                "name": utils.bytes_of_string(name),
-                "symbol": utils.bytes_of_string(symbol),
-            }
-        )
+def _total_supply(fa2_contract, args):
+    """Utility function to call the contract's total_supply view to get the total amount of tokens."""
+    return sp.View(fa2_contract, "total_supply")(args)
 
 
+@sp.add_test()
+def test():
+    # Create and configure the test scenario
+    # Import the types from the FA2 library, the library itself, and the contract module, in that order.
+    scenario = sp.test_scenario("fa2_lib_nft", my_module)
+    scenario.h1("FA2 NFT contract test")
+
+    # Define test accounts
+    admin = sp.test_account("Admin")
     alice = sp.test_account("Alice")
-    tok0_md = make_metadata(name="Token Zero", decimals=1, symbol="Tok0")
-    tok1_md = make_metadata(name="Token One", decimals=1, symbol="Tok1")
-    tok2_md = make_metadata(name="Token Two", decimals=1, symbol="Tok2")
+    bob = sp.test_account("Bob")
 
-    @sp.add_test(name="Minimal test")
-    def test():
-        scenario = sp.test_scenario("test_simple_nft", main)
-        c1 = main.Fa2NftMinimal(
-            utils.metadata_of_url("https://cloudflare-ipfs.com/ipfs/QmW8jPMdBmFvsSEoLWPPhaozN6jGQFxxkwuMLtVFqEy6Fb")
-        )
-        scenario += c1
+    # Define initial token metadata and ownership
+    tok0_md = fa2.make_metadata(name="Token Zero", decimals=1, symbol="Tok0")
+    tok1_md = fa2.make_metadata(name="Token One", decimals=1, symbol="Tok1")
+    tok2_md = fa2.make_metadata(name="Token Two", decimals=1, symbol="Tok2")
+    token_metadata = [tok0_md, tok1_md, tok2_md]
+    ledger = {0: alice.address, 1: alice.address, 2: bob.address}
 
-    from templates import fa2_lib_testing as testing
-
-    c1 = main.Fa2NftMinimalTest(
-        metadata=utils.metadata_of_url("https://cloudflare-ipfs.com/ipfs/QmW8jPMdBmFvsSEoLWPPhaozN6jGQFxxkwuMLtVFqEy6Fb"),
-        ledger=sp.big_map({0: alice.address, 1: alice.address, 2: alice.address}),
-        token_metadata=sp.big_map(
-            {
-                0: sp.record(token_id=0, token_info=tok0_md),
-                1: sp.record(token_id=1, token_info=tok1_md),
-                2: sp.record(token_id=2, token_info=tok2_md),
-            }
-        ),
-        next_token_id=3,
+    # Instantiate the FA2 NFT contract
+    contract = my_module.MyNFTContract(
+        admin.address, sp.big_map(), ledger, token_metadata
     )
 
-    kwargs = {"modules": main, "ledger_type": "NFT"}
-    testing.test_core_interfaces(c1, **kwargs)
-    testing.test_transfer(c1, **kwargs)
-    testing.test_balance_of(c1, **kwargs)
-    testing.test_owner_or_operator_transfer(c1, **kwargs)
+    # Build contract metadata content
+    contract_metadata = sp.create_tzip16_metadata(
+        name="My FA2 NFT contract",
+        description="This is an FA2 NFT contract using SmartPy.",
+        version="1.0.0",
+        license_name="CC-BY-SA",
+        license_details="Creative Commons Attribution Share Alike license 4.0 https://creativecommons.org/licenses/by/4.0/",
+        interfaces=["TZIP-012", "TZIP-016"],
+        authors=["SmartPy <https://smartpy.io/#contact>"],
+        homepage="https://smartpy.io/ide?template=fa2_lib_nft.py",
+        # Optionally, upload the source code to IPFS and add the URI here
+        source_uri=None,
+        offchain_views=contract.get_offchain_views(),
+    )
+
+    # Add the info specific to FA2 permissions
+    contract_metadata["permissions"] = {
+        # The operator policy chosen:
+        # owner-or-operator-transfer is the default.
+        "operator": "owner-or-operator-transfer",
+        # Those two options should always have these values.
+        # It means that the contract doesn't use the hook mechanism.
+        "receiver": "owner-no-hook",
+        "sender": "owner-no-hook",
+    }
+
+    # You must upload the contract metadata to IPFS and get its URI.
+    # You can write the contract_metadata object to a JSON file with json.dumps() and upload it manually.
+    # You can also use sp.pin_on_ipfs() to upload the object via pinata.cloud and get the IPFS URI:
+    # metadata_uri = sp.pin_on_ipfs(contract_metadata, api_key=None, secret_key=None, name = "Metadata for my FA2 contract")
+
+    # This is a placeholder value. In production, replace it with your metadata URI.
+    metadata_uri = "ipfs://example"
+
+    # Create the metadata big map based on the IPFS URI
+    contract_metadata = sp.scenario_utils.metadata_of_url(metadata_uri)
+
+    # Update the scenario instance with the new metadata
+    contract.data.metadata = contract_metadata
+
+    # Originate the contract in the test scenario
+    scenario += contract
+
+    if scenario.simulation_mode() is sp.SimulationMode.MOCKUP:
+        scenario.p("mockups - fix transfer based testing")
+        return
+
+    # Run tests
+
+    scenario.h2("Verify the initial owners of the tokens")
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=0)) == 1
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=bob.address, token_id=0)) == 0
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=1)) == 1
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=bob.address, token_id=1)) == 0
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=2)) == 0
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=bob.address, token_id=2)) == 1
+    )
+
+    # Verify the token supply
+    scenario.verify(_total_supply(contract, sp.record(token_id=0)) == 1)
+    scenario.verify(_total_supply(contract, sp.record(token_id=1)) == 1)
+    scenario.verify(_total_supply(contract, sp.record(token_id=2)) == 1)
+
+    scenario.h2("Transfer a token")
+    contract.transfer(
+        [
+            sp.record(
+                from_=alice.address,
+                txs=[sp.record(to_=bob.address, amount=1, token_id=0)],
+            ),
+        ],
+        _sender=alice,
+    )
+    # Verify the result
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=0)) == 0
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=bob.address, token_id=0)) == 1
+    )
+    # Transfer it back
+    contract.transfer(
+        [
+            sp.record(
+                from_=bob.address,
+                txs=[sp.record(to_=alice.address, amount=1, token_id=0)],
+            ),
+        ],
+        _sender=bob,
+    )
+
+    scenario.h2("Mint a token")
+    nft3_md = fa2.make_metadata(name="Token Three", decimals=1, symbol="Tok3")
+    # Mint a token
+    contract.mint(
+        [
+            sp.record(metadata=nft3_md, to_=bob.address),
+        ],
+        _sender=bob,
+    )
+    # Verify the result
+    scenario.verify(_total_supply(contract, sp.record(token_id=3)) == 1)
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=alice.address, token_id=3)) == 0
+    )
+    scenario.verify(
+        _get_balance(contract, sp.record(owner=bob.address, token_id=3)) == 1
+    )
+
+    scenario.h2("Burn a token")
+    # Verify that you can't burn someone else's token
+    contract.burn(
+        [sp.record(token_id=3, from_=bob.address, amount=1)],
+        _sender=alice,
+        _valid=False,
+    )
+
+    # Verify that you can burn your own token
+    contract.burn([sp.record(token_id=3, from_=bob.address, amount=1)], _sender=bob)
