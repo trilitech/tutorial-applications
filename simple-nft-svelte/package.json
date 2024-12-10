@@ -9,17 +9,17 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^2.4.2",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "buffer": "^6.0.3",
     "events": "^3.3.0",
-    "svelte": "^4.0.5",
-    "vite": "^4.4.5",
+    "sass-embedded": "^1.82.0",
+    "svelte": "^5.2.7",
+    "vite": "^6.0.1",
     "vite-compatible-readable-stream": "^3.6.1"
   },
   "dependencies": {
-    "@airgap/beacon-types": "^4.0.12",
-    "@taquito/beacon-wallet": "^17.3.1",
-    "@taquito/michelson-encoder": "^17.3.2",
-    "@taquito/taquito": "^17.3.1"
+    "@airgap/beacon-types": "^4.3.1",
+    "@taquito/beacon-wallet": "^20.1.1",
+    "@taquito/taquito": "^20.1.1"
   }
 }
