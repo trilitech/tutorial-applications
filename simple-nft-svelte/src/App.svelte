@@ -7,7 +7,7 @@
   const rpcUrl = "https://rpc.ghostnet.teztnets.com";
   const Tezos = new TezosToolkit(rpcUrl);
 
-  const nftContractAddress = "KT1TuveAEsF6FPiLJ4Y55RuaMypBuXNWHitk"
+  const nftContractAddress = "KT18vYNMdkfCbcVjanT78au5eFeURCfurqZt";
 
   let wallet;
   let address;
@@ -29,7 +29,6 @@
       balance = balanceMutez.div(1000000).toFormat(2);
       buttonActive = true;
       wallet = newWallet;
-      console.log("Connected to wallet", address);
     } catch (error) {
       console.error("Error connecting wallet:", error);
     }
@@ -45,38 +44,28 @@
     if (!buttonActive) {
       return;
     }
-    if (!wallet) {
-      console.error("No wallet connected");
-      return;
-    } else {
-      console.log("Wallet is connected");
-    }
     buttonActive = false;
     statusMessage = "Minting NFT...";
 
     try {
-      console.log("setting the wallet");
       Tezos.setWalletProvider(wallet);
 
-      // const metadata = new MichelsonMap();
-      // metadata.set("name", stringToBytes("My Token")); // replace with your metadata
+      const metadata = new MichelsonMap();
+      metadata.set("name", stringToBytes("My Token")); // replace with your metadata
 
-      // const mintItem = {
-      //   to_: address,
-      //   metadata: metadata,
-      // };
+      const mintItem = {
+        to_: address,
+        metadata: metadata,
+      };
 
       console.log("getting contract");
-      // const nftContract = await Tezos.contract.at(nftContractAddress);
+      const nftContract = await Tezos.wallet.at(nftContractAddress);
 
-      // For debugging, try calling a counter
-      const contract = await Tezos.contract.at("KT1R2LTg3mQoLvHtUjo2xSi7RMBUJ1sJkDiD");
-      // console.log("minting");
-      // const op = await contract.methodsObject.mint([mintItem]).send();
-      const op = await contract.methodsObject.increment(2).send();
+      console.log("minting");
+      const op = await nftContract.methodsObject.mint([mintItem]).send();
 
-      console.log(`Waiting for ${op.hash} to be confirmed...`);
-      const hash = await op.confirmation(2).then(() => op.hash);
+      console.log(`Waiting for ${op.opHash} to be confirmed...`);
+      const hash = await op.confirmation(2).then(() => op.opHash);
       console.log(`Operation injected: https://ghost.tzstats.com/${hash}`);
     } catch (error) {
       console.error("Error minting NFT:", error);
