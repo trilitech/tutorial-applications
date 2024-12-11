@@ -15,9 +15,10 @@ def my_module():
         main.MintNft,
         main.BurnNft,
         main.OnchainviewBalanceOf,
+        main.Admin,
     ):
         def __init__(self, admin_address, contract_metadata, ledger, token_metadata):
-            """Initializes the contract with administrative permissions and NFT functionalities.
+            """Initializes the contract with NFT functionalities.
             The base class is required; all mixins are optional.
             The initialization must follow this order:
 
@@ -37,6 +38,13 @@ def my_module():
             # Initialize the NFT base class
             main.Nft.__init__(self, contract_metadata, ledger, token_metadata)
 
+            main.Admin.__init__(self, admin_address)
+
+        # Mock this function so anyone can mint for the purposes of the tutorial
+        @sp.private()
+        def is_administrator_(self):
+            return True
+
 def _get_balance(fa2_contract, args):
     """Utility function to call the contract's get_balance view to get an account's token balance."""
     return sp.View(fa2_contract, "get_balance")(args)
@@ -55,7 +63,6 @@ def test():
     scenario.h1("FA2 NFT contract test")
 
     # Define test accounts
-    admin = sp.test_account("Admin")
     alice = sp.test_account("Alice")
     bob = sp.test_account("Bob")
 
@@ -68,7 +75,7 @@ def test():
 
     # Instantiate the FA2 NFT contract
     contract = my_module.MyNFTContract(
-        admin.address, sp.big_map(), ledger, token_metadata
+        alice.address, sp.big_map(), ledger, token_metadata
     )
 
     # Build contract metadata content
