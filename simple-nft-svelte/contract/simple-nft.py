@@ -11,11 +11,11 @@ def my_module():
 
     # Order of inheritance: [Admin], [<policy>], <base class>, [<other mixins>].
     class MyNFTContract(
+        main.Admin,
         main.Nft,
         main.MintNft,
         main.BurnNft,
         main.OnchainviewBalanceOf,
-        main.Admin,
     ):
         def __init__(self, admin_address, contract_metadata, ledger, token_metadata):
             """Initializes the contract with NFT functionalities.
