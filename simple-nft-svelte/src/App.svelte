@@ -7,7 +7,7 @@
   const rpcUrl = "https://rpc.ghostnet.teztnets.com";
   const Tezos = new TezosToolkit(rpcUrl);
 
-  const nftContractAddress = "KT18vYNMdkfCbcVjanT78au5eFeURCfurqZt";
+  const nftContractAddress = "KT1Lr8m7HgfY5UF6nXDDcXDxDgEmKyMeds1b";
 
   let wallet;
   let address;
