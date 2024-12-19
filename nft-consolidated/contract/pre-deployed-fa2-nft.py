@@ -40,7 +40,7 @@ def my_module():
 
             main.Admin.__init__(self, admin_address)
 
-        # Mock this function so anyone can mint for the purposes of the tutorial
+        # Override this function so anyone can mint for the purposes of the tutorial
         @sp.private()
         def is_administrator_(self):
             return True
