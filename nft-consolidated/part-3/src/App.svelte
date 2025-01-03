@@ -58,6 +58,7 @@
     metadata.set("decimals", stringToBytes("0"));
     metadata.set("artifactUri", stringToBytes(defaultImage));
     metadata.set("displayUri", stringToBytes(defaultImage));
+    metadata.set("description", stringToBytes("A token I minted"));
     metadata.set("thumbnailUri", stringToBytes(defaultImage));
 
     const mintItem = {
