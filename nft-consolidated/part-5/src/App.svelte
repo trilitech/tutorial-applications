@@ -2,7 +2,7 @@
   import { BeaconWallet } from "@taquito/beacon-wallet";
   import { NetworkType } from "@airgap/beacon-types";
   import { TezosToolkit, MichelsonMap } from "@taquito/taquito";
-  import { bytes2Char, stringToBytes } from "@taquito/utils";
+  import { stringToBytes } from "@taquito/utils";
 
   const rpcUrl = "https://rpc.ghostnet.teztnets.com";
   const Tezos = new TezosToolkit(rpcUrl);
@@ -18,7 +18,6 @@
   let buttonActive = false;
 
   let userNfts;
-  let nftStorage;
 
   const connectWallet = async () => {
     try {
@@ -35,7 +34,7 @@
       buttonActive = true;
       statusMessage = "Wallet connected. Ready to mint NFTs.";
       wallet = newWallet;
-      // await getUserNfts();
+      await getUserNfts();
     } catch (error) {
       console.error("Error connecting wallet:", error);
     }
@@ -46,7 +45,6 @@
     statusMessage = "Connect your wallet.";
     wallet = undefined;
     buttonActive = false;
-    nftStorage = null;
     userNfts = null;
   };
 
@@ -74,65 +72,55 @@
 
     const mintParameter = [mintItem];
 
-    // try {
-    //   Tezos.setWalletProvider(wallet);
+    try {
+      Tezos.setWalletProvider(wallet);
 
-    //   console.log("getting contract");
-    //   const nftContract = await Tezos.wallet.at(nftContractAddress);
+      console.log("getting contract");
+      const nftContract = await Tezos.wallet.at(nftContractAddress);
 
-    //   console.log("minting");
-    //   const op = await nftContract.methodsObject.mint(mintParameter).send();
+      console.log("minting");
+      const op = await nftContract.methodsObject.mint(mintParameter).send();
 
-    //   console.log(`Waiting for ${op.opHash} to be confirmed...`);
-    //   const hash = await op.confirmation(2).then(() => op.opHash);
-    //   console.log(`Operation injected: https://ghostnet.tzkt.io/${hash}`);
-    //   await getUserNfts();
-    // } catch (error) {
-    //   console.error("Error minting NFT:", error);
-    // } finally {
-    //   statusMessage = "Ready to mint another NFT.";
-    //   buttonActive = true;
-    // }
+      console.log(`Waiting for ${op.opHash} to be confirmed...`);
+      const hash = await op.confirmation(2).then(() => op.opHash);
+      console.log(`Operation injected: https://ghostnet.tzkt.io/${hash}`);
+    } catch (error) {
+      console.error("Error minting NFT:", error);
+    } finally {
+      statusMessage = "Ready to mint another NFT.";
+      buttonActive = true;
+      getUserNfts();
+    }
   };
 
   const getUserNfts = async () => {
     if (!address) {
       return;
     }
-    // finds user's NFTs
+    // Get the ID of the big-map that records token owners
     const contract = await Tezos.wallet.at(nftContractAddress);
-    nftStorage = await contract.storage();
-    const ledger = nftStorage.ledger;
+    const nftStorage = await contract.storage();
+    const ledger = nftStorage['ledger'];
+    const ledgerID = ledger.id.toString();
 
-    console.log("Getting user NFTs");
-    console.log(ledger);
+    // Get the contents of the big-map
+    const data = await fetch(`${rpcUrl}/chains/main/blocks/head/context/raw/json/big_maps/index/${ledgerID}/contents`);
+    const keys = await data.json();
 
-    await ledger.get({0: '0', 1: 'tz1QCVQinE8iVj1H2fckqx6oiM85CNJSK9Sx'})
-      .then((data) => console.log(data))
-      .catch((err) => console.error('Error: result:', err));
+    // Get the owner of each NFT
+    const tokenOwners = await Promise.all(
+      keys.map((_k, index) => ledger.get(index.toString()))
+    );
 
-    // const result = await nftStorage.ledger.get({0: 0, 1: 'tz1QCVQinE8iVj1H2fckqx6oiM85CNJSK9Sx'})
-    //   .catch((err) => console.error('Error: result:', err));
-    // if (!result) {
-    //   console.log("no results")
-    // }
-    // const getTokenIds = await nftStorage.ledger.get(address);
-    // if (getTokenIds) {
-    //   userNfts = await Promise.all([
-    //     ...getTokenIds.map(async id => {
-    //       const tokenId = id.toNumber();
-    //       const metadata = await nftStorage.token_metadata.get(tokenId);
-    //       const tokenInfoBytes = metadata.token_info.get("");
-    //       const tokenInfo = bytes2Char(tokenInfoBytes);
-    //       return {
-    //         tokenId,
-    //         ipfsHash:
-    //           tokenInfo.slice(0, 7) === "ipfs://" ? tokenInfo.slice(7) : null
-    //       };
-    //     })
-    //   ]);
-    // }
+    // Filter to the IDs of the tokens that the connected address owns
+    userNfts = tokenOwners.reduce((matchingIndexes, ownerAddress, index) => {
+      if (ownerAddress === address) {
+        matchingIndexes.push(index);
+      }
+      return matchingIndexes;
+    }, []);
   };
+
 </script>
 
 <main>
@@ -144,22 +132,21 @@
       <p>Its balance in tez is {balance}.</p>
       <button on:click={disconnectWallet}>Disconnect wallet</button>
       <button on:click={createNFT}>Create NFT</button>
-      <button on:click={getUserNfts}>Get NFTs</button>
       <div class="user-nfts">
-        Your NFTs:
-        {#if nftStorage}
-          [ {#each userNfts.reverse() as nft, index}
-            <a
-              href={`https://cloudflare-ipfs.com/ipfs/${nft.ipfsHash}`}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-            >
-              {nft.tokenId}
-            </a>
-            {#if index < userNfts.length - 1}
-              <span>,&nbsp;</span>
-            {/if}
-          {/each} ]
+        {#if userNfts?.length > 0}
+          <p>
+            IDs of your NFTs:
+            {#each userNfts as nftID, index}
+              {nftID}
+              {#if index < userNfts.length - 1}
+                <span>,&nbsp;</span>
+              {/if}
+            {/each}
+          </p>
+        {:else if userNfts?.length === 0}
+          <p>The connected account has no NFTs.</p>
+        {:else}
+          <p>Loading this account's NFTs...</p>
         {/if}
       </div>
     {:else}
