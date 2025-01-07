@@ -89,7 +89,7 @@
     } finally {
       statusMessage = "Ready to mint another NFT.";
       buttonActive = true;
-      getUserNfts();
+      await getUserNfts();
     }
   };
 
