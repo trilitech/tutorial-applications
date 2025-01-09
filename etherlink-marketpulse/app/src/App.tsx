@@ -343,8 +343,8 @@ export default function App({ thirdwebClient }: AppProps) {
                   <td style={{ textAlign: "right" }}>
                     {options && options.size > 0
                       ? calculateOdds(option, parseEther(amount.toString(10)))
-                          .toFixed(3)
-                          .toString()
+                        .toFixed(3)
+                        .toString()
                       : 0}
                   </td>
                 </tr>
@@ -355,17 +355,17 @@ export default function App({ thirdwebClient }: AppProps) {
                     XTZ{" "}
                     {amount
                       ? calculateOdds(option, parseEther(amount.toString(10)))
-                          .multipliedBy(amount)
-                          .toFixed(6)
-                          .toString()
+                        .multipliedBy(amount)
+                        .toFixed(6)
+                        .toString()
                       : 0}{" "}
                     (
                     {options && options.size > 0
                       ? calculateOdds(option, parseEther(amount.toString(10)))
-                          .minus(new BigNumber(1))
-                          .multipliedBy(100)
-                          .toFixed(2)
-                          .toString()
+                        .minus(new BigNumber(1))
+                        .multipliedBy(100)
+                        .toFixed(2)
+                        .toString()
                       : 0}
                     %)
                   </td>

@@ -5,9 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #1D2B39;
-
-
+  background-color: #1d2b39;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -31,7 +29,6 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-
 }
 
 h1 {
@@ -46,7 +43,7 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #2D9CDB;
+  background-color: #2d9cdb;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -63,7 +60,7 @@ button:focus-visible {
 select {
   width: inherit;
   font-size: 0.875rem;
-  color: #858D92;
+  color: #858d92;
   border-color: #344452;
   transition: color 0.2s;
   text-align: center;
@@ -71,7 +68,7 @@ select {
   border-style: solid;
   align-self: center;
   padding: 1rem 1rem;
-  background: #1D2B39;
+  background: #1d2b39;
   outline: none;
   outline-color: currentcolor;
   outline-style: none;
@@ -82,7 +79,7 @@ select {
 input {
   width: calc(100% - 35px);
   font-size: 0.875rem;
-  color: #858D92;
+  color: #858d92;
   border-color: #344452;
   transition: color 0.2s;
   text-align: center;
@@ -90,7 +87,7 @@ input {
   border-style: solid;
   align-self: center;
   padding: 1rem 1rem;
-  background: #1D2B39;
+  background: #1d2b39;
   outline: none;
   outline-color: currentcolor;
   outline-style: none;

@@ -39,16 +39,16 @@
 }
 
 header {
-  border-bottom: 1px solid #2C3F4F;
+  border-bottom: 1px solid #2c3f4f;
   height: 100px;
 }
 
 footer {
-  border-top: 1px solid #2C3F4F;
+  border-top: 1px solid #2c3f4f;
 }
 
 hr {
-  color: #2C3F4F;
+  color: #2c3f4f;
   height: 1px;
 }
 
@@ -62,8 +62,6 @@ hr {
 }
 
 .picDiv {
-
-
   height: 40px;
   width: 40px;
   min-width: 40px;
@@ -79,7 +77,6 @@ hr {
 .read-the-docs {
   color: #888;
 }
-
 
 h1 {
   margin: unset;
