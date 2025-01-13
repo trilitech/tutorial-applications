@@ -18,7 +18,7 @@ def my_module():
         main.OnchainviewBalanceOf,
     ):
         def __init__(self, admin_address, contract_metadata, ledger, token_metadata):
-            """Initializes the contract with NFT functionalities.
+            """Initializes the contract with administrative permissions and NFT functionalities.
             The base class is required; all mixins are optional.
             The initialization must follow this order:
 
@@ -38,21 +38,8 @@ def my_module():
             # Initialize the NFT base class
             main.Nft.__init__(self, contract_metadata, ledger, token_metadata)
 
+            # Initialize administrative permissions
             main.Admin.__init__(self, admin_address)
-
-        # Override this function so anyone can mint for the purposes of the tutorial
-        @sp.private()
-        def is_administrator_(self):
-            return True
-
-def _get_balance(fa2_contract, args):
-    """Utility function to call the contract's get_balance view to get an account's token balance."""
-    return sp.View(fa2_contract, "get_balance")(args)
-
-
-def _total_supply(fa2_contract, args):
-    """Utility function to call the contract's total_supply view to get the total amount of tokens."""
-    return sp.View(fa2_contract, "total_supply")(args)
 
 # Create token metadata
 # Adapted from fa2.make_metadata
@@ -69,6 +56,16 @@ def create_metadata(symbol, name, decimals, displayUri, artifactUri, description
         }
     )
 
+def _get_balance(fa2_contract, args):
+    """Utility function to call the contract's get_balance view to get an account's token balance."""
+    return sp.View(fa2_contract, "get_balance")(args)
+
+
+def _total_supply(fa2_contract, args):
+    """Utility function to call the contract's total_supply view to get the total amount of tokens."""
+    return sp.View(fa2_contract, "total_supply")(args)
+
+
 @sp.add_test()
 def test():
     # Create and configure the test scenario
@@ -77,6 +74,13 @@ def test():
     scenario.h1("FA2 NFT contract test")
 
     # Define test accounts
+    # admin = sp.record(
+    #     address=sp.address("tz1QCVQinE8iVj1H2fckqx6oiM85CNJSK9Sx"),
+    #     public_key_hash=sp.key_hash("tz1QCVQinE8iVj1H2fckqx6oiM85CNJSK9Sx"),
+    #     public_key=sp.key("edpktnVRg5YeqR6yWXUFuDVTLMzDQrre1QD3FXmYxRzTVinSsJLpnk"),
+    #     private_key="edskRypCD2G7B1ym3MWuJig8LvpmG32soDsmXVSs7QzZKAH7ehWfZx5buxZ8vaHP2FHqu7yj2jrdUQyBd72EaTJ5iDTbDD9bvJ"
+    # )
+    admin = sp.address("tz1QCVQinE8iVj1H2fckqx6oiM85CNJSK9Sx")
     alice = sp.test_account("Alice")
     bob = sp.test_account("Bob")
 
@@ -116,7 +120,7 @@ def test():
 
     # Instantiate the FA2 NFT contract
     contract = my_module.MyNFTContract(
-        alice.address, sp.big_map(), ledger, token_metadata
+        admin, sp.big_map(), ledger, token_metadata
     )
 
     # Build contract metadata content
@@ -223,12 +227,20 @@ def test():
 
     scenario.h2("Mint a token")
     nft3_md = fa2.make_metadata(name="Token Three", decimals=1, symbol="Tok3")
-    # Mint a token
+    # Verify that only the admin can mint a token
     contract.mint(
         [
             sp.record(metadata=nft3_md, to_=bob.address),
         ],
         _sender=bob,
+        _valid=False,
+    )
+    # Mint a token
+    contract.mint(
+        [
+            sp.record(metadata=nft3_md, to_=bob.address),
+        ],
+        _sender=admin,
     )
     # Verify the result
     scenario.verify(_total_supply(contract, sp.record(token_id=3)) == 1)
