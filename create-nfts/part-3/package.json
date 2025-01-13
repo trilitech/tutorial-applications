@@ -1,0 +1,25 @@
+{
+  "name": "create-nfts",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "svelte": "^5.2.7",
+    "vite": "^6.0.1",
+    "vite-compatible-readable-stream": "^3.6.1"
+  },
+  "dependencies": {
+    "@airgap/beacon-types": "^4.3.1",
+    "@taquito/beacon-wallet": "^20.1.2",
+    "@taquito/taquito": "^20.1.2",
+    "@taquito/utils": "^20.1.2"
+  }
+}
