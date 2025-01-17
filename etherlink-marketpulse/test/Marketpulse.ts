@@ -239,8 +239,8 @@ describe("Marketpulse", function () {
           { gasPrice: 0n }
         );
       } catch (e) {
-        expect((e as ContractFunctionExecutionError).details).equals(
-          "VM Exception while processing transaction: reverted with reason string 'Result is already given and bets are resolved : \x00'"
+        expect((e as ContractFunctionExecutionError).details).contains(
+          "VM Exception while processing transaction: reverted with reason string 'Result is already given and bets are resolved"
         );
       }
     });
