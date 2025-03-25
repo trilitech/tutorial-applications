@@ -52,13 +52,11 @@ module TacoShop = struct
     let _ = if (taco_kind.current_stock = 0n) then
       failwith "Sorry, we are out of this type of taco" in
 
-
     (* Update the storage with the new quantity of tacos *)
     let updated_taco_data : taco_data = Map.update
       taco_kind_index
       (Some { taco_kind with current_stock = abs (taco_kind.current_stock - 1n) })
       taco_data in
-
 
     let updated_storage : storage = {
       admin_address = admin_address;
@@ -67,28 +65,12 @@ module TacoShop = struct
 
     [], updated_storage
 
-    [@entry]
-    let payout (_u : unit) (storage : storage) : operation list * storage =
+  [@entry]
+  let payout (_u : unit) (storage : storage) : operation list * storage =
 
-      (* Ensure that only the admin can call this entrypoint *)
-      let _ = if (Tezos.get_sender () <> storage.admin_address) then
-        failwith "Only the admin can call this entrypoint" in
+    (* Entrypoint logic goes here *)
 
-      (* Create contract object that represents the target account *)
-      let receiver_contract = match Tezos.get_contract_opt storage.admin_address with
-      | Some contract -> contract
-      | None -> failwith "Couldn't find account" in
-
-      (* Create operation to send tez *)
-      let payout_operation = Tezos.Operation.transaction unit (Tezos.get_balance ()) receiver_contract in
-
-      (* Restore stock of tacos *)
-      let new_storage : storage = {
-        admin_address = storage.admin_address;
-        taco_data = default_taco_data
-      } in
-
-      [payout_operation], new_storage
+    [], storage
 
 end
 
@@ -148,11 +130,11 @@ let test =
     | Fail err -> failwith err
     in
 
-    (* Fail to purchase a taco without sending enough tez *)
-    let fail_result = Test.Contract.transfer
-      (Test.Typed_address.get_entrypoint "buy_taco" contract.taddr)
-      1n
-      1mutez in
-    match fail_result with
-    | Success _s -> failwith "Test was able to buy a taco for the wrong price"
-    | Fail _err -> Test.IO.log "Contract successfully blocked purchase with incorrect price"
+  (* Fail to purchase a taco without sending enough tez *)
+  let fail_result = Test.Contract.transfer
+    (Test.Typed_address.get_entrypoint "buy_taco" contract.taddr)
+    1n
+    1mutez in
+  match fail_result with
+  | Success _s -> failwith "Test was able to buy a taco for the wrong price"
+  | Fail _err -> Test.IO.log "Contract successfully blocked purchase with incorrect price"

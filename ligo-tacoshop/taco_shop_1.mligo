@@ -49,13 +49,11 @@ module TacoShop = struct
     let _ = if (taco_kind.current_stock = 0n) then
       failwith "Sorry, we are out of this type of taco" in
 
-
     (* Update the storage with the new quantity of tacos *)
     let updated_taco_data : taco_data = Map.update
       taco_kind_index
       (Some { taco_kind with current_stock = abs (taco_kind.current_stock - 1n) })
       taco_data in
-
 
     let updated_storage : storage = {
       admin_address = admin_address;
@@ -64,11 +62,12 @@ module TacoShop = struct
 
     [], updated_storage
 
-    [@entry]
-    let payout (_u : unit) (storage : storage) : operation list * storage =
+  [@entry]
+  let payout (_u : unit) (storage : storage) : operation list * storage =
 
-      (* Entrypoint logic goes here *)
+    (* Entrypoint logic goes here *)
 
-      [], storage
+    [], storage
 
-  end
+end
+

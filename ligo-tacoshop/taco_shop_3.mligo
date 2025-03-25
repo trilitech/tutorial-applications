@@ -52,13 +52,11 @@ module TacoShop = struct
     let _ = if (taco_kind.current_stock = 0n) then
       failwith "Sorry, we are out of this type of taco" in
 
-
     (* Update the storage with the new quantity of tacos *)
     let updated_taco_data : taco_data = Map.update
       taco_kind_index
       (Some { taco_kind with current_stock = abs (taco_kind.current_stock - 1n) })
       taco_data in
-
 
     let updated_storage : storage = {
       admin_address = admin_address;
@@ -67,28 +65,28 @@ module TacoShop = struct
 
     [], updated_storage
 
-    [@entry]
-    let payout (_u : unit) (storage : storage) : operation list * storage =
+  [@entry]
+  let payout (_u : unit) (storage : storage) : operation list * storage =
 
-      (* Ensure that only the admin can call this entrypoint *)
-      let _ = if (Tezos.get_sender () <> storage.admin_address) then
-        failwith "Only the admin can call this entrypoint" in
+    (* Ensure that only the admin can call this entrypoint *)
+    let _ = if (Tezos.get_sender () <> storage.admin_address) then
+      failwith "Only the admin can call this entrypoint" in
 
-      (* Create contract object that represents the target account *)
-      let receiver_contract = match Tezos.get_contract_opt storage.admin_address with
-      | Some contract -> contract
-      | None -> failwith "Couldn't find account" in
+    (* Create contract object that represents the target account *)
+    let receiver_contract = match Tezos.get_contract_opt storage.admin_address with
+    | Some contract -> contract
+    | None -> failwith "Couldn't find account" in
 
-      (* Create operation to send tez *)
-      let payout_operation = Tezos.Operation.transaction unit (Tezos.get_balance ()) receiver_contract in
+    (* Create operation to send tez *)
+    let payout_operation = Tezos.Operation.transaction unit (Tezos.get_balance ()) receiver_contract in
 
-      (* Restore stock of tacos *)
-      let new_storage : storage = {
-        admin_address = storage.admin_address;
-        taco_data = default_taco_data
-      } in
+    (* Restore stock of tacos *)
+    let new_storage : storage = {
+      admin_address = storage.admin_address;
+      taco_data = default_taco_data
+    } in
 
-      [payout_operation], new_storage
+    [payout_operation], new_storage
 
 end
 
@@ -148,48 +146,50 @@ let test =
     | Fail err -> failwith err
     in
 
-    (* Fail to purchase a taco without sending enough tez *)
-    let fail_result = Test.Contract.transfer
-      (Test.Typed_address.get_entrypoint "buy_taco" contract.taddr)
-      1n
-      1mutez in
-    let () = match fail_result with
-    | Success _s -> failwith "Test was able to buy a taco for the wrong price"
-    | Fail _err -> Test.IO.log "Contract successfully blocked purchase with incorrect price" in
+  (* Fail to purchase a taco without sending enough tez *)
+  let fail_result = Test.Contract.transfer
+    (Test.Typed_address.get_entrypoint "buy_taco" contract.taddr)
+    1n
+    1mutez in
+  let () = match fail_result with
+  | Success _s -> failwith "Test was able to buy a taco for the wrong price"
+  | Fail _err -> Test.IO.log "Contract successfully blocked purchase with incorrect price" in
 
-    (* Test the payout entrypoint as the administrator *)
-    let admin_balance_before = Test.Address.get_balance admin_address in
-    let () = Test.State.set_source admin_address in
-    let payout_result = Test.Contract.transfer
-      (Test.Typed_address.get_entrypoint "payout" contract.taddr)
-      unit
-      0tez
-    in
-    let () = match payout_result with
-    | Success _s -> let storage = Test.Typed_address.get_storage contract.taddr in
-      let () = Assert.assert
-        (eq_in_map (Map.find 1n TacoShop.default_taco_data)
-        storage.taco_data
-        1n) in
-      let () = Assert.assert
-        (eq_in_map (Map.find 2n TacoShop.default_taco_data)
-        storage.taco_data
-        2n) in
-      Test.IO.log "Successfully reset taco storage"
-    | Fail _err -> failwith "Failed to reset taco storage" in
+  (* Test the payout entrypoint as the administrator *)
+  let admin_balance_before = Test.Address.get_balance admin_address in
 
-    (* Check that the admin account got a payout *)
-    let admin_balance_after = Test.Address.get_balance admin_address in
-    let () = Assert.assert (Test.Compare.lt admin_balance_before admin_balance_after) in
+  let () = Test.State.set_source admin_address in
 
-    (* Verify that the entrypoint fails if called by someone else *)
-    let other_user_account = Test.Account.address 1n in
-    let _ = Test.State.set_source other_user_account in
-    let failed_payout_result = Test.Contract.transfer
-      (Test.Typed_address.get_entrypoint "payout" contract.taddr)
-      unit
-      0tez
-    in
-    match failed_payout_result with
-    | Success _s -> failwith "A non-admin user was able to call the payout entrypoint"
-    | Fail _err -> Test.IO.log "Successfully prevented a non-admin user from calling the payout entrypoint"
+  let payout_result = Test.Contract.transfer
+    (Test.Typed_address.get_entrypoint "payout" contract.taddr)
+    unit
+    0tez
+  in
+  let () = match payout_result with
+  | Success _s -> let storage = Test.Typed_address.get_storage contract.taddr in
+    let () = Assert.assert
+      (eq_in_map (Map.find 1n TacoShop.default_taco_data)
+      storage.taco_data
+      1n) in
+    let () = Assert.assert
+      (eq_in_map (Map.find 2n TacoShop.default_taco_data)
+      storage.taco_data
+      2n) in
+    Test.IO.log "Successfully reset taco storage"
+  | Fail _err -> failwith "Failed to reset taco storage" in
+
+  (* Check that the admin account got a payout *)
+  let admin_balance_after = Test.Address.get_balance admin_address in
+  let () = Assert.assert (Test.Compare.lt admin_balance_before admin_balance_after) in
+
+  (* Verify that the entrypoint fails if called by someone else *)
+  let other_user_account = Test.Account.address 1n in
+  let _ = Test.State.set_source other_user_account in
+  let failed_payout_result = Test.Contract.transfer
+    (Test.Typed_address.get_entrypoint "payout" contract.taddr)
+    unit
+    0tez
+  in
+  match failed_payout_result with
+  | Success _s -> failwith "A non-admin user was able to call the payout entrypoint"
+  | Fail _err -> Test.IO.log "Successfully prevented a non-admin user from calling the payout entrypoint"
