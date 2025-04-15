@@ -8,26 +8,26 @@ namespace TacoShop {
   };
 
   export const default_taco_data: taco_data = Map.literal([
-    [1n, { current_stock: 50n, max_price: 50tez }],
-    [2n, { current_stock: 20n, max_price: 75tez }]
+    [1 as nat, { current_stock: 50 as nat, max_price: 50 as tez }],
+    [2 as nat, { current_stock: 20 as nat, max_price: 75 as tez }]
   ]);
 
   // Internal function to get the price of a taco
   const get_taco_price_internal = (taco_kind_index: nat, taco_data: taco_data): tez => {
     const taco_kind: taco_supply =
-      match (Map.find_opt(taco_kind_index, taco_data)) {
-        when(Some(kind)): kind;
-        when(None()): failwith("Unknown kind of taco")
-      };
+      $match (Map.find_opt(taco_kind_index, taco_data), {
+        "Some": (kind) => kind,
+        "None": () => failwith("Unknown kind of taco"),
+      });
     return taco_kind.max_price / taco_kind.current_stock;
   }
 
-  @view
+  // @view
   const get_taco_price = (taco_kind_index: nat, storage: storage): tez =>
     get_taco_price_internal(taco_kind_index, storage.taco_data);
 
   // Buy a taco
-  @entry
+  // @entry
   const buy_taco = (taco_kind_index: nat, storage: storage): [
       list<operation>,
       storage
@@ -37,10 +37,10 @@ namespace TacoShop {
 
     // Retrieve the kind of taco from the contracts storage or fail
     const taco_kind: taco_supply =
-      match (Map.find_opt(taco_kind_index, taco_data)) {
-        when(Some(kind)): kind;
-        when(None()): failwith("Unknown kind of taco");
-      };
+      $match (Map.find_opt(taco_kind_index, taco_data), {
+        "Some": (kind) => kind,
+        "None": () => failwith("Unknown kind of taco"),
+      });
 
     // Get the current price of this type of taco
     const current_purchase_price = get_taco_price_internal(taco_kind_index, taco_data);
@@ -51,14 +51,14 @@ namespace TacoShop {
     }
 
     // Verify that there is at least one of this type of taco
-    if (taco_kind.current_stock == 0n) {
+    if (taco_kind.current_stock == (0 as nat)) {
       return failwith("Sorry, we are out of this type of taco");
     }
 
     // Update the storage with the new quantity of tacos
     const updated_taco_data: taco_data = Map.update(
       taco_kind_index,
-      (Some (({...taco_kind, current_stock: abs(taco_kind.current_stock - 1n) }))),
+      ["Some" as "Some", {...taco_kind, current_stock: abs(taco_kind.current_stock - 1) }],
       taco_data);
 
     const updated_storage: storage = {
@@ -69,7 +69,7 @@ namespace TacoShop {
     return [[], updated_storage];
   }
 
-  @entry
+  // @entry
   const payout = (_u: unit, storage: storage): [
       list<operation>,
       storage
@@ -79,4 +79,5 @@ namespace TacoShop {
 
     return [[], storage];
   }
+
 };
