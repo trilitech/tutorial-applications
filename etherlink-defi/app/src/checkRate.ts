@@ -97,31 +97,34 @@ const run = async () => {
     console.log("\n");
     console.log("Iteration", i++);
     let baselinePrice = await getPrice(connection);
-    console.log("Baseline price:", baselinePrice);
+    console.log("Baseline price:", baselinePrice, "USD to 1 XTZ");
+    const oneUSDBaseline = Math.ceil((1/baselinePrice) * 10000) / 10000; // Round up to four decimals
+    console.log("Or", oneUSDBaseline, "XTZ to 1 USD");
 
     const updatedPrice = await alertOnPriceFluctuations(baselinePrice, connection);
-    console.log("Price changed:", updatedPrice);
+    console.log("Price changed:", updatedPrice, "USD to 1 XTZ");
     const priceFeedUpdateData = await connection.getLatestPriceUpdates([XTZ_USD_ID]);
-    if (baselinePrice > updatedPrice) {
+    const oneUSD = Math.ceil((1/updatedPrice) * 10000) / 10000; // Round up to four decimals
+
+    if (baselinePrice < updatedPrice) {
       // Buy
-      console.log("Price went down; time to buy");
-      const oneUSD = Math.ceil((1/updatedPrice) * 100) / 100; // Round up to two decimals
+      console.log("Price of USD relative to XTZ went down; time to buy");
       console.log("Sending", oneUSD, "XTZ (about one USD)");
       const buyHash = await contract.write.buy(
         [[`0x${priceFeedUpdateData.binary.data[0]}`]] as any,
         { value: parseEther(oneUSD.toString()), gas: 30000000n },
       );
       await publicClient.waitForTransactionReceipt({ hash: buyHash });
-      console.log("Bought one token");
-    } else if (baselinePrice < updatedPrice) {
-      console.log("Price went up; time to sell");
+      console.log("Bought one token for", oneUSD, "XTZ");
+    } else if (baselinePrice > updatedPrice) {
+      console.log("Price of USD relative to XTZ went up; time to sell");
       // Sell
       const sellHash = await contract.write.sell(
         [[`0x${priceFeedUpdateData.binary.data[0]}`]] as any,
         { gas: 30000000n }
       );
       await publicClient.waitForTransactionReceipt({ hash: sellHash });
-      console.log("Sold one token");
+      console.log("Sold one token for", oneUSD, "XTZ");
     }
     balance = await getBalance();
   }
