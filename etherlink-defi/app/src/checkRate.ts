@@ -83,7 +83,7 @@ const run = async () => {
   console.log("Starting balance:", balance);
   // If not enough tokens, initialize balance with 5 tokens in the contract
   if (balance < 5) {
-    console.log("Initializing account with 5 tez");
+    console.log("Initializing account with 5 tokens");
     const initHash = await contract.write.initAccount([myAccount.address]);
     await publicClient.waitForTransactionReceipt({ hash: initHash });
     balance = await getBalance()
