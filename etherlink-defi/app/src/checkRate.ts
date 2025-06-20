@@ -128,11 +128,6 @@ const run = async () => {
     }
     balance = await getBalance();
   }
-
-  // Cash out
-  console.log("Cashing out");
-  // Call the cashout function to retrieve the XTZ you've sent to the contract (for tutorial purposes)
-  await contract.write.cashout();
 }
 
 run();

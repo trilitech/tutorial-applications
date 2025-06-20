@@ -65,14 +65,6 @@ contract TutorialContract {
     balances[msg.sender] -= 1;
   }
 
-  // For tutorial purposes, cash out the XTZ in the contract
-  function cashout() public {
-    require(address(this).balance > 0, "No XTZ to send");
-    (bool sent, ) = msg.sender.call{value: address(this).balance}("");
-    require(sent, "Failed to send XTZ");
-    balances[msg.sender] = 0;
-  }
-
   // Initialize accounts with 5 tokens for the sake of the tutorial
   function initAccount(address user) external {
     require(balances[msg.sender] < 5, "You already have at least 5 tokens");

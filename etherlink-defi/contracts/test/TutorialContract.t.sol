@@ -92,12 +92,5 @@ contract ContractToTest is Test {
     assertEq(7, myContract.getBalance(testUser));
     myContract.sell(updateData);
     assertEq(6, myContract.getBalance(testUser));
-
-    // Test cashout
-    uint256 balanceBefore = testUser.balance;
-    myContract.cashout();
-    uint256 balanceAfter = testUser.balance;
-    assertLt(balanceBefore, balanceAfter);
-    assertEq(0, myContract.getBalance(testUser));
   }
 }
