@@ -22,7 +22,9 @@ const accounts = setUpAccounts();
 // Default storage
 export const initial_storage: PokeGame.storage = {
   messages: Map.empty,
-  feedback: "Hello"
+  feedback: "Hello",
+  admin: accounts[0],
+  tickets: Map.empty,
 };
 
 // Deploy contract and return its typed address
@@ -41,7 +43,7 @@ export const unitTest = (
   contract1_taddr: typed_address<parameter_of PokeGame.PokeGame, PokeGame.storage>
 ): unit => {
 
-  const [account1, _account2] = accounts;
+  const [account1, account2] = accounts;
 
   // Simulate a transaction
   Test.State.set_source(account1);
@@ -83,17 +85,38 @@ export const unitTest = (
     + Test.String.show(contract2Address)
   );
 
-  // Poke contract 2 via contract 1
+  // Verify that account2 can't poke without a ticket
+  Test.State.set_source(account2);
   const result3 = Test.Contract.transfer(Test.Typed_address.get_entrypoint("pokeOtherContract", contract1_taddr), contract2Address, 0tez);
-  match(result3) {
-    when(Fail(_err)): failwith("Transaction failed");
+   match(result3) {
+    when(Fail(_err)): Test.IO.log("Successfully failed a poke from someone who didn't have a ticket");
+    when(Success(_s)): failwith("Transaction should have been blocked");
+  };
+
+  // Admin creates a ticket for account 2
+  Test.State.set_source(account1);
+  const _ = Test.Contract.transfer_exn(Test.Typed_address.get_entrypoint("createTicket", contract1_taddr), account2, 0tez);
+  const storage3: PokeGame.storage = Test.get_storage(contract1_taddr);
+  match(Map.find_opt(account2, storage3.tickets)) {
+    when(Some(ticket)): do {
+      const [[_ticketerAddress, [ticketAddress, _amount]], _newTicket] = Tezos.Ticket.read(ticket);
+      Assert.assert(ticketAddress == account2);
+    }
+    when (None()): Assert.assert(false);
+  };
+
+  // Poke contract 2 via contract 1
+  Test.State.set_source(account2);
+  const result4 = Test.Contract.transfer(Test.Typed_address.get_entrypoint("pokeOtherContract", contract1_taddr), contract2Address, 0tez);
+  match(result4) {
+    when(Fail(_err)): failwith(_err);
     when(Success(_s)): Test.IO.log("Transaction succeeded");
   };
 
   // Check that contract 2 called pokeMe in response
-  const storage3: PokeGame.storage = Test.get_storage(contract1_taddr);
-  Test.IO.log(storage3);
-  match(Map.find_opt(contract2Address, storage3.messages)) {
+  const storage4: PokeGame.storage = Test.get_storage(contract1_taddr);
+  Test.IO.log(storage4);
+  match(Map.find_opt(contract2Address, storage4.messages)) {
     when(Some(message)): Assert.assert(message == contract2Feedback);
     when (None()): Assert.assert(false);
   };
