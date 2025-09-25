@@ -131,7 +131,7 @@ def test():
         license_name="CC-BY-SA",
         license_details="Creative Commons Attribution Share Alike license 4.0 https://creativecommons.org/licenses/by/4.0/",
         interfaces=["TZIP-012", "TZIP-016"],
-        authors=["SmartPy <https://smartpy.io/#contact>"],
+        authors=["SmartPy <https://smartpy.tezos.com>"],
         homepage="https://smartpy.io/ide?template=fa2_lib_nft.py",
         # Optionally, upload the source code to IPFS and add the URI here
         source_uri=None,
