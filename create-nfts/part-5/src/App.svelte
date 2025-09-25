@@ -4,19 +4,16 @@
   import { TezosToolkit, MichelsonMap } from "@taquito/taquito";
   import { stringToBytes } from "@taquito/utils";
 
-  const rpcUrl = "https://rpc.ghostnet.teztnets.com";
+  const rpcUrl = "https://rpc.shadownet.teztnets.com";
   const Tezos = new TezosToolkit(rpcUrl);
-
-  const nftContractAddress = "KT1Lr8m7HgfY5UF6nXDDcXDxDgEmKyMeds1b";
-  const defaultImage =
-    "https://gateway.pinata.cloud/ipfs/QmRCp4Qc8afPrEqtM1YdRvNagWCsFGXHgGjbBYrmNsBkcE";
+  const nftContractAddress = "KT1NbqYinUijW68V3fxboo4EzQPFgRcdfaYQ";
+  const defaultImage = "https://gateway.pinata.cloud/ipfs/QmRCp4Qc8afPrEqtM1YdRvNagWCsFGXHgGjbBYrmNsBkcE";
 
   let wallet;
   let address;
   let balance;
   let statusMessage = "Connect your wallet.";
   let buttonActive = false;
-
   let userNfts;
 
   const connectWallet = async () => {
@@ -24,7 +21,7 @@
       const newWallet = new BeaconWallet({
         name: "NFT app tutorial",
         network: {
-          type: NetworkType.GHOSTNET,
+          type: NetworkType.SHADOWNET,
         },
       });
       await newWallet.requestPermissions();
@@ -124,7 +121,7 @@
 </script>
 
 <main>
-  <h1>Create NFTs</h1>
+  <h1>Simple NFT dApp</h1>
 
   <div class="card">
     {#if wallet}
