@@ -66,10 +66,10 @@ def my_module():
                 is_supply = sp.is_nat(
                     self.data.supply.get(source_token_id, default=0) - amount
                 )
-                with sp.match(is_supply):
-                    with sp.case.Some as supply:
+                match(is_supply):
+                    case Some(supply):
                         self.data.supply[source_token_id] = supply
-                    with None:
+                    case None:
                         self.data.supply[source_token_id] = 0
 
                 # Get a pair to represent the key for the ledger for the target tokens
