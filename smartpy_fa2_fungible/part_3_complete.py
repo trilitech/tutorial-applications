@@ -61,6 +61,7 @@ def test():
         (alice.address, 0): 10,
         (bob.address, 1): 10,
     }
+    sp.cast(initial_ledger, fa2.t.ledger_fungible)
 
     # Instantiate the FA2 fungible token contract
     contract = my_module.MyFungibleContract(admin.address, sp.big_map(), initial_ledger, [tok0_md, tok1_md])
