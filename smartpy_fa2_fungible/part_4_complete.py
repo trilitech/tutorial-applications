@@ -141,7 +141,9 @@ def test():
     }
 
     # Upload the metadata to IPFS and get its URI
-    metadata_uri = sp.pin_on_ipfs(contract_metadata)
+    # TODO: Add your Pinata API key and secret
+    # Or put them in the PINATA_KEY and PINATA_SECRET environment variables
+    metadata_uri = sp.pin_on_ipfs(contract_metadata, api_key=None, secret_key=None)
 
     # Create the metadata big map based on the IPFS URI
     contract_metadata = sp.scenario_utils.metadata_of_url(metadata_uri)
