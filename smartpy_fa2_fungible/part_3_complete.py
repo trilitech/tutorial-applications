@@ -61,6 +61,7 @@ def test():
         (alice.address, 0): 10,
         (bob.address, 1): 10,
     }
+    sp.cast(initial_ledger, fa2.t.ledger_fungible)
 
     # Instantiate the FA2 fungible token contract
     contract = my_module.MyFungibleContract(admin.address, sp.big_map(), initial_ledger, [tok0_md, tok1_md])
@@ -73,7 +74,7 @@ def test():
         license_name="CC-BY-SA",
         license_details="Creative Commons Attribution Share Alike license 4.0 https://creativecommons.org/licenses/by/4.0/",
         interfaces=["TZIP-012", "TZIP-016"],
-        authors=["SmartPy <https://smartpy.io/#contact>"],
+        authors=["SmartPy <https://smartpy.tezos.com>"],
         homepage="https://smartpy.io/ide?template=fa2_lib_fungible.py",
         # Optionally, upload the source code to IPFS and add the URI here
         source_uri=None,
@@ -92,7 +93,9 @@ def test():
     }
 
     # Upload the metadata to IPFS and get its URI
-    metadata_uri = sp.pin_on_ipfs(contract_metadata)
+    # TODO: Add your Pinata API key and secret
+    # Or put them in the PINATA_KEY and PINATA_SECRET environment variables
+    metadata_uri = sp.pin_on_ipfs(contract_metadata, api_key=None, secret_key=None)
 
     # Create the metadata big map based on the IPFS URI
     contract_metadata = sp.scenario_utils.metadata_of_url(metadata_uri)
