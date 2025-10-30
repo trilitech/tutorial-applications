@@ -1,0 +1,69 @@
+import Tezos = Tezos.Next;
+
+export type storage = {
+  messages: map<address, string>,
+  feedback: string
+};
+
+type return_type = [list<operation>, storage];
+
+namespace MockPokeContract {
+
+  @entry
+  const poke = (_: unit, storage: storage): return_type => [[], storage];
+
+  @entry
+  const pokeWithMessage = (_message: string, storage: storage): return_type => [[], storage];
+
+  @entry
+  const pokeOtherContract = (_targetAddress: address, storage: storage): return_type => [[], storage];
+
+  @entry
+  const pokeMeBack = (_: unit, storage: storage): return_type => [[], storage];
+}
+
+export namespace PokeGame {
+
+  // Simple poke with no message
+  @entry
+  const poke = (_: unit, storage: storage): return_type =>
+    [
+      [],
+      {
+        ...storage,
+        messages: Map.add(Tezos.get_sender(), "", storage.messages),
+      }
+    ];
+
+  // Poke with message
+  @entry
+  const pokeWithMessage = (message: string, storage: storage): return_type =>
+    [
+      [],
+      {
+        ...storage,
+        messages: Map.add(Tezos.get_sender(), message, storage.messages),
+      }
+    ];
+
+  // Poke a different contract
+  @entry
+  const pokeOtherContract = (targetAddress: address, storage: storage): return_type => {
+    const contract = Tezos.get_contract(targetAddress);
+    const parameter = PokeMeBack() as parameter_of MockPokeContract;
+    const op = Tezos.Operation.transaction(parameter, 0tez, contract);
+    // How do I use self or this here?
+    // This may not be quite as good as using contract<feedback_param> but I don't understand exactly what's going in there; are we passing the schema for the contract to make more flexible the process of calling the other contract?
+    return [[op], storage];
+  }
+
+  // Receive a request from another contract and poke them back
+  @entry
+  const pokeMeBack = (_: unit, storage: storage): return_type => {
+    const contract = Tezos.get_contract(Tezos.get_sender());
+    const parameter = PokeWithMessage(storage.feedback) as parameter_of MockPokeContract;
+    const op = Tezos.Operation.transaction(parameter, 0tez, contract);
+    return [[op], storage];
+  }
+
+}
