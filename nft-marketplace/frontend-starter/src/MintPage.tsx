@@ -23,7 +23,7 @@ export default function MintPage() {
         "//TODO"
       ) : (
         <Typography sx={{ py: "2em" }} variant="h4">
-          Sorry, there is not NFT yet, you need to mint bottles first
+          No NFTs yet. Click "Connect Wallet" and mint an NFT.
         </Typography>
       )}
     </Paper>
