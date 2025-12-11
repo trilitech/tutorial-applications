@@ -10,7 +10,7 @@ export default function MintPage() {
     nftContractTokenMetadataMap,
     storage,
     refreshUserContextOnPageReload,
-    nftContrat,
+    nftContract,
   } = React.useContext(UserContext) as UserContextType;
 
   const isTablet = useMediaQuery("(min-width:600px)");

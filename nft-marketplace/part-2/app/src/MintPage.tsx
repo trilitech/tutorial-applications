@@ -38,7 +38,7 @@ export default function MintPage() {
     nftContractTokenMetadataMap,
     storage,
     refreshUserContextOnPageReload,
-    nftContrat,
+    nftContract,
   } = React.useContext(UserContext) as UserContextType;
 
   const [activeStep, setActiveStep] = React.useState(0);
@@ -136,7 +136,7 @@ export default function MintPage() {
           `https://gateway.pinata.cloud/ipfs/${responseJson.IpfsHash}`
         );
 
-        const op = await nftContrat!.methods
+        const op = await nftContract!.methods
           .mint(
             new BigNumber(newTokenDefinition.token_id) as nat,
             char2Bytes(newTokenDefinition.name!) as bytes,

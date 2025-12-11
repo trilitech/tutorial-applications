@@ -27,8 +27,8 @@ export type UserContextType = {
   setUserBalance: Dispatch<SetStateAction<number>>;
   wallet: BeaconWallet;
   nftContractAddress: string;
-  nftContrat: NftWalletType | null;
-  setNftContrat: Dispatch<SetStateAction<NftWalletType | null>>;
+  nftContract: NftWalletType | null;
+  setNftContract: Dispatch<SetStateAction<NftWalletType | null>>;
   nftContractTokenMetadataMap: Map<string, TZIP21TokenMetadata>;
   setnftContractTokenMetadataMap: Dispatch<
     SetStateAction<Map<string, TZIP21TokenMetadata>>
@@ -45,7 +45,7 @@ function App() {
   const [storage, setStorage] = useState<Storage | null>(null);
   const [userAddress, setUserAddress] = useState<string>("");
   const [userBalance, setUserBalance] = useState<number>(0);
-  const [nftContrat, setNftContrat] = useState<NftWalletType | null>(null);
+  const [nftContract, setNftContract] = useState<NftWalletType | null>(null);
   const [nftContractTokenMetadataMap, setnftContractTokenMetadataMap] = useState<
     Map<string, TZIP21TokenMetadata>
   >(new Map());
@@ -71,10 +71,10 @@ function App() {
       let c = await Tezos.contract.at(nftContractAddress, tzip12);
       console.log("nftContractAddress", nftContractAddress);
 
-      let nftContrat: NftWalletType = await Tezos.wallet.at<NftWalletType>(
+      let nftContract: NftWalletType = await Tezos.wallet.at<NftWalletType>(
         nftContractAddress
       );
-      const storage = (await nftContrat.storage()) as Storage;
+      const storage = (await nftContract.storage()) as Storage;
 
       const token_metadataBigMapId = (
         storage.token_metadata as unknown as { id: BigNumber }
@@ -94,7 +94,7 @@ function App() {
         })
       );
       setnftContractTokenMetadataMap(new Map(nftContractTokenMetadataMap)); //new Map to force refresh
-      setNftContrat(nftContrat);
+      setNftContract(nftContract);
       setStorage(storage);
     } catch (error) {
       console.log("error refreshing nft contract: ", error);
@@ -130,10 +130,10 @@ function App() {
         setUserBalance,
         wallet,
         nftContractAddress,
-        nftContrat,
+        nftContract,
         nftContractTokenMetadataMap,
         setnftContractTokenMetadataMap,
-        setNftContrat,
+        setNftContract,
         storage,
         refreshUserContextOnPageReload,
       }}

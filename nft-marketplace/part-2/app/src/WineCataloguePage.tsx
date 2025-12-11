@@ -45,7 +45,7 @@ export default function WineCataloguePage() {
     setUserBalance,
     wallet,
     userAddress,
-    nftContrat,
+    nftContract,
     refreshUserContextOnPageReload,
     storage,
   } = React.useContext(UserContext) as UserContextType;
@@ -67,7 +67,7 @@ export default function WineCataloguePage() {
 
   const buy = async (selectedOfferEntry: OfferEntry) => {
     try {
-      const op = await nftContrat?.methods
+      const op = await nftContract?.methods
         .buy(
           BigNumber(selectedOfferEntry[0]) as nat,
           selectedOfferEntry[1].owner

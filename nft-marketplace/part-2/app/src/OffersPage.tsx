@@ -58,7 +58,7 @@ export default function OffersPage() {
   );
 
   const {
-    nftContrat,
+    nftContract,
     nftContractTokenMetadataMap,
     userAddress,
     storage,
@@ -147,7 +147,7 @@ export default function OffersPage() {
 
   const sell = async (token_id: number, price: number) => {
     try {
-      const op = await nftContrat?.methods
+      const op = await nftContract?.methods
         .sell(
           BigNumber(token_id) as nat,
           BigNumber(price * 1000000) as nat //to mutez
