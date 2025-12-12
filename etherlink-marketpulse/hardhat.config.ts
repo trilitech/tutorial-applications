@@ -55,11 +55,6 @@ export default defineConfig({
           apiUrl: "https://shadownet.explorer.etherlink.com/api",
           url: "https://shadownet.explorer.etherlink.com",
         },
-        blockscout: {
-          name: "EtherlinkExplorer",
-          apiUrl: "https://shadownet.explorer.etherlink.com/api",
-          url: "https://shadownet.explorer.etherlink.com",
-        },
       },
     },
     42793: {
