@@ -16,7 +16,7 @@ import {
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { parseEther } from "viem";
-import { etherlinkTestnet } from "viem/chains";
+import { etherlinkShadownetTestnet } from "viem/chains";
 import { extractErrorDetails } from "./DecodeEvmTransactionLogsArgs";
 import CONTRACT_ADDRESS_JSON from "./deployed_addresses.json";
 
@@ -47,6 +47,13 @@ interface AppProps {
 export default function App({ thirdwebClient }: AppProps) {
   console.log("*************App");
 
+  const marketPulseContract = {
+    abi: Marketpulse__factory.abi,
+    client: thirdwebClient,
+    chain: defineChain(etherlinkShadownetTestnet.id),
+    address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
+  }
+
   const account = useActiveAccount();
 
   const [options, setOptions] = useState<Map<string, bigint>>(new Map());
@@ -64,45 +71,25 @@ export default function App({ thirdwebClient }: AppProps) {
       console.log("No address...");
     } else {
       const dataStatus = await readContract({
-        contract: getContract({
-          abi: Marketpulse__factory.abi,
-          client: thirdwebClient,
-          chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
-        }),
+        contract: getContract(marketPulseContract),
         method: "status",
         params: [],
       });
 
       const dataWinner = await readContract({
-        contract: getContract({
-          abi: Marketpulse__factory.abi,
-          client: thirdwebClient,
-          chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
-        }),
+        contract: getContract(marketPulseContract),
         method: "winner",
         params: [],
       });
 
       const dataFEES = await readContract({
-        contract: getContract({
-          abi: Marketpulse__factory.abi,
-          client: thirdwebClient,
-          chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
-        }),
+        contract: getContract(marketPulseContract),
         method: "FEES",
         params: [],
       });
 
       const dataBetKeys = await readContract({
-        contract: getContract({
-          abi: Marketpulse__factory.abi,
-          client: thirdwebClient,
-          chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
-        }),
+        contract: getContract(marketPulseContract),
         method: "getBetKeys",
         params: [],
       });
@@ -139,13 +126,7 @@ export default function App({ thirdwebClient }: AppProps) {
           betKeys.map(
             async (betKey) =>
               (await readContract({
-                contract: getContract({
-                  abi: Marketpulse__factory.abi,
-                  client: thirdwebClient,
-                  chain: defineChain(etherlinkTestnet.id),
-                  address:
-                    CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
-                }),
+                contract: getContract(marketPulseContract),
                 method: "getBets",
                 params: [betKey],
               })) as unknown as Marketpulse.BetStruct
@@ -177,12 +158,7 @@ export default function App({ thirdwebClient }: AppProps) {
     const handlePing = async () => {
       try {
         const preparedContractCall = await prepareContractCall({
-          contract: getContract({
-            abi: Marketpulse__factory.abi,
-            client: thirdwebClient,
-            chain: defineChain(etherlinkTestnet.id),
-            address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
-          }),
+          contract: getContract(marketPulseContract),
           method: "ping",
           params: [],
         });
@@ -197,11 +173,11 @@ export default function App({ thirdwebClient }: AppProps) {
         //wait for tx to be included on a block
         const receipt = await waitForReceipt({
           client: thirdwebClient,
-          chain: defineChain(etherlinkTestnet.id),
+          chain: defineChain(etherlinkShadownetTestnet.id),
           transactionHash: transaction.transactionHash,
         });
 
-        console.log("receipt :", receipt);
+        console.log("receipt:", receipt);
 
         setError("");
       } catch (error) {
@@ -227,12 +203,7 @@ export default function App({ thirdwebClient }: AppProps) {
 
     const runFunction = async () => {
       try {
-        const contract = getContract({
-          abi: Marketpulse__factory.abi,
-          client: thirdwebClient,
-          chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
-        });
+        const contract = getContract(marketPulseContract);
 
         const preparedContractCall = await prepareContractCall({
           contract,
@@ -249,11 +220,11 @@ export default function App({ thirdwebClient }: AppProps) {
         //wait for tx to be included on a block
         const receipt = await waitForReceipt({
           client: thirdwebClient,
-          chain: defineChain(etherlinkTestnet.id),
+          chain: defineChain(etherlinkShadownetTestnet.id),
           transactionHash: transaction.transactionHash,
         });
 
-        console.log("receipt :", receipt);
+        console.log("receipt:", receipt);
 
         await reload();
 
@@ -343,8 +314,8 @@ export default function App({ thirdwebClient }: AppProps) {
                   <td style={{ textAlign: "right" }}>
                     {options && options.size > 0
                       ? calculateOdds(option, parseEther(amount.toString(10)))
-                        .toFixed(3)
-                        .toString()
+                          .toFixed(3)
+                          .toString()
                       : 0}
                   </td>
                 </tr>
@@ -355,17 +326,17 @@ export default function App({ thirdwebClient }: AppProps) {
                     XTZ{" "}
                     {amount
                       ? calculateOdds(option, parseEther(amount.toString(10)))
-                        .multipliedBy(amount)
-                        .toFixed(6)
-                        .toString()
+                          .multipliedBy(amount)
+                          .toFixed(6)
+                          .toString()
                       : 0}{" "}
                     (
                     {options && options.size > 0
                       ? calculateOdds(option, parseEther(amount.toString(10)))
-                        .minus(new BigNumber(1))
-                        .multipliedBy(100)
-                        .toFixed(2)
-                        .toString()
+                          .minus(new BigNumber(1))
+                          .multipliedBy(100)
+                          .toFixed(2)
+                          .toString()
                       : 0}
                     %)
                   </td>
@@ -388,12 +359,7 @@ export default function App({ thirdwebClient }: AppProps) {
   const resolve = async (option: string) => {
     try {
       const preparedContractCall = await prepareContractCall({
-        contract: getContract({
-          abi: Marketpulse__factory.abi,
-          client: thirdwebClient,
-          chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
-        }),
+        contract: getContract(marketPulseContract),
         method: "resolveResult",
         params: [option, BET_RESULT.WIN],
       });
@@ -408,11 +374,11 @@ export default function App({ thirdwebClient }: AppProps) {
       //wait for tx to be included on a block
       const receipt = await waitForReceipt({
         client: thirdwebClient,
-        chain: defineChain(etherlinkTestnet.id),
+        chain: defineChain(etherlinkShadownetTestnet.id),
         transactionHash: transaction.transactionHash,
       });
 
-      console.log("receipt :", receipt);
+      console.log("receipt:", receipt);
 
       await reload();
 
@@ -434,7 +400,7 @@ export default function App({ thirdwebClient }: AppProps) {
               client={thirdwebClient}
               wallets={wallets}
               connectModal={{ size: "compact" }}
-              chain={defineChain(etherlinkTestnet.id)}
+              chain={defineChain(etherlinkShadownetTestnet.id)}
             />
           </div>
         </span>
@@ -464,7 +430,10 @@ export default function App({ thirdwebClient }: AppProps) {
                       <div className="picDiv">
                         <img
                           style={{ objectFit: "cover", height: "inherit" }}
-                          src={option + ".png"}
+                          src={
+                            option +
+                            ".png"
+                          }
                         ></img>
                       </div>
                       {option}
