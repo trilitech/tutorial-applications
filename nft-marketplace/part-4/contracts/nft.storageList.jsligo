@@ -1,0 +1,40 @@
+#import "nft.jsligo" "Contract"
+
+#import "@ligo/fa/lib/fa2/asset/extendable_multi_asset.impl.jsligo" "FA2Impl"
+
+const default_storage: Contract.storage = {
+    extension: {
+        administrators: Set.literal(
+            list(["tz1QCVQinE8iVj1H2fckqx6oiM85CNJSK9Sx" as address])
+        ) as set<address>,
+        offers: Map.empty as map<[address, nat], Contract.offer>
+    },
+    ledger: Big_map.empty as FA2Impl.ledger,
+    metadata: Big_map.literal(
+        list(
+            [
+                ["", bytes `tezos-storage:data`],
+                [
+                    "data",
+                    bytes
+                    `{
+        "name":"FA2 NFT Marketplace",
+        "description":"Example of FA2 implementation",
+        "version":"0.0.1",
+        "license":{"name":"MIT"},
+        "authors":["Marigold<contact@marigold.dev>"],
+        "homepage":"https://marigold.dev",
+        "source":{
+        "tools":["Ligo"],
+        "location":"https://github.com/ligolang/contract-catalogue/tree/main/lib/fa2"},
+        "interfaces":["TZIP-012"],
+        "errors": [],
+        "views": []
+        }`
+                ]
+            ]
+        )
+    ) as FA2Impl.TZIP16.metadata,
+    token_metadata: Big_map.empty as FA2Impl.TZIP12.tokenMetadata,
+    operators: Big_map.empty as FA2Impl.operators,
+};
