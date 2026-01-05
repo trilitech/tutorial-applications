@@ -1,5 +1,5 @@
 {
-  "name": "marketpulse-shadownet-3",
+  "name": "marketpulse-shadownet",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -14,13 +14,13 @@
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
     "@nomicfoundation/hardhat-verify": "^3.0.8",
     "@types/chai": "^5.2.3",
-    "@types/node": "^22.19.2",
-    "chai": "^6.2.1",
+    "@types/node": "^22.19.3",
+    "chai": "^6.2.2",
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
-    "hardhat": "^3.0.17",
+    "hardhat": "^3.1.2",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.0",
-    "viem": "^2.41.2"
+    "viem": "^2.43.5"
   },
   "type": "module",
   "dependencies": {
