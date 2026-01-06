@@ -1,56 +1,76 @@
-import "@nomicfoundation/hardhat-toolbox-viem";
-import "@nomicfoundation/hardhat-verify";
-import type { HardhatUserConfig } from "hardhat/config";
-import { vars } from "hardhat/config";
+import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
+import { configVariable, defineConfig } from "hardhat/config";
 
-if (!vars.has("DEPLOYER_PRIVATE_KEY")) {
+if (!configVariable("DEPLOYER_PRIVATE_KEY")) {
   console.error("Missing env var DEPLOYER_PRIVATE_KEY");
 }
 
-const deployerPrivateKey = vars.get("DEPLOYER_PRIVATE_KEY");
+const deployerPrivateKey = configVariable("DEPLOYER_PRIVATE_KEY");
 
-const config: HardhatUserConfig = {
-  solidity: "0.8.24",
-
+export default defineConfig({
+  plugins: [hardhatToolboxViemPlugin],
+  solidity: {
+    profiles: {
+      default: {
+        version: "0.8.28",
+      },
+      production: {
+        version: "0.8.28",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    },
+  },
   networks: {
+    hardhatMainnet: {
+      type: "edr-simulated",
+      chainType: "l1",
+    },
+    hardhatOp: {
+      type: "edr-simulated",
+      chainType: "op",
+    },
     etherlinkMainnet: {
+      type: "http",
       url: "https://node.mainnet.etherlink.com",
       accounts: [deployerPrivateKey],
     },
-    etherlinkTestnet: {
-      url: "https://node.ghostnet.etherlink.com",
+    etherlinkShadownet: {
+      type: "http",
+      url: "https://node.shadownet.etherlink.com",
       accounts: [deployerPrivateKey],
     },
   },
-  etherscan: {
-    apiKey: {
-      etherlinkMainnet: "YOU_CAN_COPY_ME",
-      etherlinkTestnet: "YOU_CAN_COPY_ME",
+  chainDescriptors: {
+    127823: {
+      chainType: "generic",
+      name: "etherlinkShadownet",
+      blockExplorers: {
+        etherscan: {
+          name: "EtherlinkExplorer",
+          apiUrl: "https://shadownet.explorer.etherlink.com/api",
+          url: "https://shadownet.explorer.etherlink.com",
+        },
+      },
     },
-    customChains: [
-      {
-        network: "etherlinkMainnet",
-        chainId: 42793,
-        urls: {
-          apiURL: "https://explorer.etherlink.com/api",
-          browserURL: "https://explorer.etherlink.com",
-        },
-      },
-      {
-        network: "etherlinkTestnet",
-        chainId: 128123,
-        urls: {
-          apiURL: "https://testnet.explorer.etherlink.com/api",
-          browserURL: "https://testnet.explorer.etherlink.com",
-        },
-      },
-    ],
+    42793: {
+      name: "EtherlinkMainnet",
+    }
   },
-  sourcify: {
-    // Disabled by default
-    // Doesn't need an API key
-    enabled: false,
-  },
-};
-
-export default config;
+  verify: {
+    blockscout: {
+      enabled: true,
+    },
+    etherscan: {
+      apiKey: "DUMMY",
+      enabled: true,
+    },
+    sourcify: {
+      enabled: false,
+    }
+  }
+});

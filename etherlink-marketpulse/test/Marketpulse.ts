@@ -1,7 +1,8 @@
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
 import { ContractFunctionExecutionError, parseEther } from "viem";
+import { describe, it } from "node:test";
+const { viem, networkHelpers } = await hre.network.connect();
 
 //constants and local variables
 const ODD_DECIMALS = 10;
@@ -21,19 +22,17 @@ describe("Marketpulse", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployContractFixture() {
     // Contracts are deployed using the first signer/account by default
-    const [owner, bob] = await hre.viem.getWalletClients();
+    const [owner, bob] = await viem.getWalletClients();
 
     // Set block base fee to zero because we want exact calculation checks without network fees
-    await hre.network.provider.send("hardhat_setNextBlockBaseFeePerGas", [
-      "0x0",
-    ]);
+    await networkHelpers.setNextBlockBaseFeePerGas("0x0");
 
-    const marketpulseContract = await hre.viem.deployContract(
+    const marketpulseContract = await viem.deployContract(
       "Marketpulse",
       []
     );
 
-    const publicClient = await hre.viem.getPublicClient();
+    const publicClient = await viem.getPublicClient();
 
     initAliceAmount = await publicClient.getBalance({
       address: owner.account.address,
@@ -53,7 +52,7 @@ describe("Marketpulse", function () {
 
   describe("init function", function () {
     it("should be initialized", async function () {
-      const { marketpulseContract, owner } = await loadFixture(
+      const { marketpulseContract, owner } = await networkHelpers.loadFixture(
         deployContractFixture
       );
 
@@ -65,7 +64,7 @@ describe("Marketpulse", function () {
     });
 
     it("should return Pong", async function () {
-      const { marketpulseContract, publicClient } = await loadFixture(
+      const { marketpulseContract, publicClient } = await networkHelpers.loadFixture(
         deployContractFixture
       );
 
@@ -95,7 +94,7 @@ describe("Marketpulse", function () {
         owner: alice,
         publicClient,
         bob,
-      } = await loadFixture(deployContractFixture);
+      } = await networkHelpers.loadFixture(deployContractFixture);
 
       expect(await marketpulseContract.read.betKeys.length).to.equal(0);
 
@@ -131,9 +130,7 @@ describe("Marketpulse", function () {
       expect(betChiefs1.option).equals("chiefs");
       expect(betChiefs1.amount).equals(parseEther("1"));
 
-      console.log(
-        "Should get a correct odd of 0.9 (including fees) for Chiefs if we bet 1"
-      );
+      console.log("Should get a correct odd of 0.9 (including fees) for Chiefs if we bet 1");
 
       let odd = await marketpulseContract.read.calculateOdds([
         "chiefs",
@@ -145,9 +142,7 @@ describe("Marketpulse", function () {
       console.log("Lions bet for 2 ethers should return a hash");
 
       // Set block base fee to zero
-      await hre.network.provider.send("hardhat_setNextBlockBaseFeePerGas", [
-        "0x0",
-      ]);
+      await networkHelpers.setNextBlockBaseFeePerGas("0x0");
 
       const betLions2IdHash = await marketpulseContract.write.bet(
         ["lions", parseEther("2")],
@@ -169,7 +164,9 @@ describe("Marketpulse", function () {
 
       console.log("Should find the Lions bet from hash");
 
-      const betLions2 = await marketpulseContract.read.getBets([betLions2Id]);
+      const betLions2 = await marketpulseContract.read.getBets([
+        betLions2Id,
+      ]);
 
       expect(betLions2).not.null;
 
@@ -179,9 +176,7 @@ describe("Marketpulse", function () {
       expect(betLions2.option).equals("lions");
       expect(betLions2.amount).equals(parseEther("2"));
 
-      console.log(
-        "Should get a correct odd of 1.9 for Chiefs (including fees) if we bet 1"
-      );
+      console.log("Should get a correct odd of 1.9 for Chiefs (including fees) if we bet 1");
 
       odd = await marketpulseContract.read.calculateOdds([
         "chiefs",
@@ -203,9 +198,7 @@ describe("Marketpulse", function () {
         BigInt(Math.floor((1 + 1 / 3 - 0.1) * 10 ** ODD_DECIMALS))
       );
 
-      console.log(
-        "Should return all correct balances after resolving Win on Chiefs"
-      );
+      console.log("Should return all correct balances after resolving Win on Chiefs");
 
       await marketpulseContract.write.resolveResult(
         ["chiefs", BET_RESULT.WIN],
@@ -239,8 +232,8 @@ describe("Marketpulse", function () {
           { gasPrice: 0n }
         );
       } catch (e) {
-        expect((e as ContractFunctionExecutionError).details).equals(
-          "VM Exception while processing transaction: reverted with reason string 'Result is already given and bets are resolved : \x00'"
+     expect((e as ContractFunctionExecutionError).details).contains(
+       "VM Exception while processing transaction: reverted with reason string 'Result is already given and bets are resolved"
         );
       }
     });

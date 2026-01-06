@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-// Uncomment this line to use console.log
+// Use console.log for Hardhat debugging
 import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title Marketpulse
- * @author Benjamin Fuentes
- * @notice odds are
- */
+* @author Benjamin Fuentes
+*/
 contract Marketpulse {
     using Math for uint256;
 
@@ -31,11 +30,11 @@ contract Marketpulse {
     uint256 public constant FEES = 10; // as PERCENTAGE unit (%)
 
     /** SLOTS */
-    address payable public admin; //0
-    mapping(uint256 => Bet) public bets; //1
-    uint256[] public betKeys; //2
-    BET_RESULT public status = BET_RESULT.PENDING; //3
-    string public winner; //4
+    address payable public admin;
+    mapping(uint256 => Bet) public bets;
+    uint256[] public betKeys;
+    BET_RESULT public status = BET_RESULT.PENDING;
+    string public winner;
 
     event Pong();
 
@@ -45,7 +44,7 @@ contract Marketpulse {
 
     /**
      * Getter /setter
-     */
+    */
     function getBetKeys() public view returns (uint256[] memory) {
         return betKeys;
     }
@@ -56,7 +55,7 @@ contract Marketpulse {
 
     /** Utility
      *
-     * */
+    * */
 
     function addressToString(
         address _addr
@@ -78,7 +77,7 @@ contract Marketpulse {
 
     /**
      * Simple Ping
-     */
+    */
     function ping() public{
         console.log("Ping");
         emit Pong();
@@ -100,7 +99,7 @@ contract Marketpulse {
 
     /**
      * place bets and returns the betId
-     */
+    */
     function bet(
         string calldata selection,
         uint256 odds
@@ -134,10 +133,10 @@ contract Marketpulse {
 
     /**
      *
-     * @param option selected option
-     * @param betAmount (Optional: default is 0) if user want to know the output gain after putting some money on it. Otherwise it gives actual gain without betting and influencing odds calculation
-     * @return odds (in ODDS_DECIMAL unit)
-     */
+    * @param option selected option
+    * @param betAmount (Optional: default is 0) if user want to know the output gain after putting some money on it. Otherwise it gives actual gain without betting and influencing odds calculation
+    * @return odds (in ODDS_DECIMAL unit)
+    */
     function calculateOdds(
         string memory option,
         uint256 betAmount //wei
