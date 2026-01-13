@@ -1,0 +1,151 @@
+import Tezos = Tezos.Next;
+
+type pokeTicket = ticket<address>
+
+export type storage = {
+  tickets: map<address, pokeTicket>;
+  messages: map<address, string>,
+  feedback: string,
+  admin: address,
+};
+
+type return_type = [list<operation>, storage];
+
+namespace MockPokeContract {
+
+  @entry
+  const poke = (_: unit, storage: storage): return_type => [[], storage];
+
+  @entry
+  const pokeWithMessage = (_message: string, storage: storage): return_type => [[], storage];
+
+  @entry
+  const pokeOtherContract = (_targetAddress: address, storage: storage): return_type => [[], storage];
+
+  @entry
+  const pokeMeBack = (_passedTicket: pokeTicket, storage: storage): return_type => [[], storage];
+
+  @entry
+  const createTicket = (_userAddress: address, storage: storage): return_type => [[], storage];
+}
+
+export namespace PokeGame {
+
+  // Simple poke with no message
+  @entry
+  const poke = (_: unit, storage: storage): return_type => {
+    const {tickets, messages, feedback, admin} = storage;
+    return [
+      [],
+      {
+        tickets,
+        feedback,
+        admin,
+        messages: Map.add(Tezos.get_sender(), "", messages),
+      }
+    ]
+  }
+
+  // Poke with message
+  @entry
+  const pokeWithMessage = (message: string, storage: storage): return_type => {
+    const {tickets, messages, feedback, admin} = storage;
+    return [
+      [],
+      {
+        tickets,
+        feedback,
+        admin,
+        messages: Map.add(Tezos.get_sender(), message, messages),
+      }
+    ]
+  }
+
+  // Poke a different contract
+  @entry
+  const pokeOtherContract = (targetAddress: address, storage: storage): return_type => {
+    const {tickets, messages, feedback, admin} = storage;
+
+    // Check that the user has a ticket
+    const [ticketOpt, updatedTickets] = Map.get_and_update(Tezos.get_sender(), None(), tickets);
+    const senderTicket = Option.value_with_error("No ticket from this sender", ticketOpt);
+
+    const contract = Tezos.get_contract(targetAddress);
+    const parameter = PokeMeBack(senderTicket) as parameter_of MockPokeContract;
+    const op = Tezos.Operation.transaction(parameter, 0tez, contract);
+    // How do I use self or this here?
+    // This may not be quite as good as using contract<feedback_param> but I don't understand exactly what's going in there; are we passing the schema for the contract to make more flexible the process of calling the other contract?
+    return [
+      [op],
+      {
+        messages,
+        feedback,
+        admin,
+        tickets: updatedTickets,
+      }
+      ];
+  }
+
+  // Receive a request from another contract and poke them back
+  // Destroys the passed ticket
+  @entry
+  const pokeMeBack = (passedTicket: pokeTicket, storage: storage): return_type => {
+    const {tickets, messages, feedback, admin} = storage;
+
+    // Verify that the sender and ticket have the same address
+    // This destroys the passedTicket variable if it succeeds
+    const [[_ticketerAddress, [ticketAddress, _amount]], _newTicket] = Tezos.Ticket.read(passedTicket);
+    if (Tezos.get_source() != ticketAddress) {
+      failwith("Sender does not match ticket address");
+    }
+
+    // Create the operation to poke the other contract
+    const contract = Tezos.get_contract(Tezos.get_sender());
+    const parameter = PokeWithMessage(feedback) as parameter_of MockPokeContract;
+    const op = Tezos.Operation.transaction(parameter, 0tez, contract);
+    return [
+      [op],
+      {
+        messages,
+        feedback,
+        admin,
+        tickets,
+      }
+    ];
+  }
+
+  // Admin only: create a poke ticket for a given address
+  @entry
+  const createTicket = (userAddress: address, storage: storage): return_type => {
+    const { tickets, messages, feedback, admin } = storage;
+
+    // Verify that the sender is the admin
+    if (admin != Tezos.get_sender()) {
+      failwith("Only the admin can call this entrypoint");
+    }
+
+    // To avoid overwriting and destroying an existing ticket, verify that the user does not have a ticket
+    const [ticketOpt, updatedTickets] = Map.get_and_update(userAddress, None(), tickets);
+    if (Option.is_some(ticketOpt)) {
+      failwith("User already has a ticket")
+    }
+
+    // Mint the ticket
+    const newTicket: pokeTicket = Option.value_with_error(
+      "Ticket failed",
+      Tezos.Ticket.create(userAddress, 1n)
+    );
+
+    // Return the storage with a new map of tickets
+    return [
+      [],
+      {
+        messages,
+        feedback,
+        admin,
+        tickets: Map.add(userAddress, newTicket, updatedTickets),
+      }
+    ];
+  }
+
+}
