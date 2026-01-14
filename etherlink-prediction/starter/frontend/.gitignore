@@ -1,0 +1,23 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Optional npm cache
+.npm
+
+# Environment files
+.env
+.env.local
+
+
+# Build directories
+dist/
+build/
+# Next.js build output
+.next/
+out/
