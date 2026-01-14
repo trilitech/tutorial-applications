@@ -1,68 +1,102 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Sidebar } from "@/components/sidebar"
-import { MarketGrid } from "@/components/market-grid"
-import { MarketModal } from "@/components/market-modal"
-import { TradingModal } from "@/components/trading-modal"
-import { Market } from "@/types/market"
-import { ConnectButton } from "thirdweb/react";
+import { useState, useEffect } from "react";
+import { Sidebar } from "@/components/sidebar";
+import { MarketGrid } from "@/components/market-grid";
+import {
+  ConnectButton,
+  useSendAndConfirmTransaction,
+  useReadContract,
+} from "thirdweb/react";
+import { marketIds } from "../lib/utils";
 import {client} from '../lib/providers'
-
-
-const sampleMarkets: Market[] = [
-  {
-    id: "1",
-    title: "Ethereum's new ATH by end of 2025?",
-    category: "Crypto",
-    probability: 58,
-    change: 2,
-    volume: "$50.1k",
-    endDate: "Dec 31",
-    image: "/ethereum-logo.png",
-    yesPrice: 0.58,
-    noPrice: 0.42,
-    totalVolume: 4849,
-    description: "Will Ethereum reach a new all-time high price by December 31, 2025?"
-  },
-  {
-    id: "2",
-    title: "Bitcoin's next hit: moon to $125K or dip to $105K?",
-    category: "Crypto",
-    probability: 54,
-    change: 1,
-    volume: "$72.5k",
-    endDate: "Dec 31",
-    image: "/bitcoin-logo.png",
-    yesPrice: 0.54,
-    noPrice: 0.46,
-    totalVolume: 3540,
-    description: "Will Bitcoin reach $125K before it drops to $105K?"
-  },
-]
+import { contract } from "@/lib/contract-utils";
+import { prepareContractCall } from "thirdweb";
+import { toWei } from "thirdweb/utils";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function HomePage() {
-  const [selectedMarket, setSelectedMarket] = useState<Market | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState<string>("All")
-  const [tradingModal, setTradingModal] = useState<{
-    market: Market
-    side: 'yes' | 'no'
-  } | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [existingMarketIds, setExistingMarketIds] = useState<number[]>([]);
 
-  const filteredMarkets = selectedCategory === "All" 
-    ? sampleMarkets 
-    : sampleMarkets.filter(market => market.category === selectedCategory)
+  // Fetch the number of markets from the contract
+  const { data: marketCounter } = useReadContract({
+    contract: contract,
+    method: "marketCounter",
+    params: [],
+  });
 
-  const handleTradeClick = (market: Market, side: 'yes' | 'no') => {
-    setTradingModal({ market, side })
-  }
+  const { mutateAsync: mutateTransaction } = useSendAndConfirmTransaction();
 
-  const handleConfirmTrade = (market: Market, side: 'yes' | 'no', amount: number) => {
-    // Handle the trade confirmation here
-    console.log(`Trading ${amount} on ${side} for market: ${market.title}`)
-    // You would typically send this to your backend/blockchain here
-  }
+  useEffect(() => {
+    // Update existingMarketIds when marketCounter changes
+    if (marketCounter) {
+      setExistingMarketIds(marketIds(marketCounter));
+    }
+  }, [marketCounter]);
 
+  // place a bet
+  const handlePlaceBet = async (
+    marketId: number,
+    side: "yes" | "no",
+    betAmount: number
+  ) => {
+    const isYes = side === "yes" ? true : false;
+    const marketIdBigInt = BigInt(marketId);
+    const betAmountWei = toWei(betAmount.toString());
+
+    // Prepare and send the transaction to place a bet
+    const transaction = prepareContractCall({
+      contract,
+      method: "function placeBet(uint256 marketId, bool isYes)",
+      params: [marketIdBigInt, isYes],
+      value: betAmountWei, // Attach the bet amount as value
+    });
+
+    try {
+      const result = await mutateTransaction(transaction);
+      console.log({ result });
+    } catch (error) {
+      console.log({ error });
+      toast.error("Market not active.");
+    }
+  };
+
+  const claimWinnings = async (marketId: number) => {
+    console.log("Claiming winnings for market ID:", marketId);
+    // Prepare and send the transaction to claim winnings
+    const marketIdBigInt = BigInt(marketId);
+    const transaction = prepareContractCall({
+      contract,
+      method: "function claimWinnings(uint256 marketId)",
+      params: [marketIdBigInt],
+    });
+
+    try {
+      const result = await mutateTransaction(transaction);
+      console.log("Winnings claimed", result);
+      toast.success("Congrats on your winnings!");
+    } catch (error) {
+      toast.error("Winnings have been claimed.");
+    }
+  };
+
+  const resolveMarket = async (marketId: number, winner: string) => {
+    console.log("resolve market for market ID:", marketId);
+    // Prepare and send the transaction to claim winnings
+    const marketIdBigInt = BigInt(marketId);
+    const winnerInt = Number(winner);
+    const transaction = prepareContractCall({
+      contract,
+      method: "function resolveMarket(uint256 marketId, uint8 winner)",
+      params: [marketIdBigInt, winnerInt],
+    });
+    try {
+      await mutateTransaction(transaction);
+    } catch (error) {
+      toast.error("Market has been resolved.");
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-950">
@@ -76,7 +110,7 @@ export default function HomePage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">Markets</h1>
             <p className="text-gray-400">
-              Trade on the outcomes of future events
+              Show you're an expert. Trade on the outcomes of future events.
             </p>
           </div>
 
@@ -85,28 +119,15 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* pass the array of existing market IDs to MarketGrid to generate cards for each market */}
         <MarketGrid
-          markets={filteredMarkets}
-          onMarketClick={setSelectedMarket}
-          onTradeClick={handleTradeClick}
+          existingMarketIds={existingMarketIds}
+          handlePlaceBet={handlePlaceBet}
+          claimWinnings={claimWinnings}
+          resolveMarket={resolveMarket}
         />
+        <Toaster />
       </main>
-
-      {selectedMarket && (
-        <MarketModal
-          market={selectedMarket}
-          onClose={() => setSelectedMarket(null)}
-        />
-      )}
-
-      {tradingModal && (
-        <TradingModal
-          market={tradingModal.market}
-          side={tradingModal.side}
-          onClose={() => setTradingModal(null)}
-          onConfirmTrade={handleConfirmTrade}
-        />
-      )}
     </div>
   );
 }

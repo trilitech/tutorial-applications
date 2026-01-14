@@ -1,23 +1,42 @@
-import { MarketCard } from "@/components/market-card"
-import { Market } from "@/types/market"
+import { MarketCard } from "@/components/market-card";
+import ResolveMarkets from "@/components/resolve-markets";
 
 interface MarketGridProps {
-  markets: Market[]
-  onMarketClick: (market: Market) => void
-  onTradeClick: (market: Market, side: 'yes' | 'no') => void
+  existingMarketIds: number[];
+  handlePlaceBet: (
+    marketId: number,
+    side: "yes" | "no",
+    betAmount: number
+  ) => void;
+  claimWinnings: (marketId: number) => void;
+  resolveMarket: (marketId: number, winner: string) => void;
 }
-
-export function MarketGrid({ markets, onMarketClick, onTradeClick }: MarketGridProps) {
+export function MarketGrid({
+  existingMarketIds,
+  handlePlaceBet,
+  claimWinnings,
+  resolveMarket,
+}: MarketGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {markets.map((market) => (
-        <MarketCard
-          key={market.id}
-          market={market}
-          onClick={() => onMarketClick(market)}
-          onTradeClick={onTradeClick}
-        />
+      {existingMarketIds.map((marketId) => (
+        <div key={marketId}>
+          <MarketCard
+            marketId={marketId}
+            key={marketId}
+            handlePlaceBet={handlePlaceBet}
+          />
+
+          <div className="mt-4">
+            <ResolveMarkets
+              key={marketId}
+              marketId={marketId}
+              claimWinnings={claimWinnings}
+              resolveMarket={resolveMarket}
+            />
+          </div>
+        </div>
       ))}
     </div>
-  )
+  );
 }
