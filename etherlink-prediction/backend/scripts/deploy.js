@@ -1,19 +1,15 @@
 // scripts/deploy.js
-const hre = require("hardhat");
+import { network } from "hardhat";
 
 async function main() {
-  // Get the deployer account
-  const [deployer] = await hre.ethers.getSigners();
-  console.log("Deploying contract with account:", deployer.address);
 
-  // Compile & get the contract factory
-  const MyContract = await ethers.getContractFactory("PredictxtzContract");
+  const { viem, networkName } = await network.connect();
 
-  // Deploy the contract
-  const DeployedContract = await MyContract.deploy();
-  await DeployedContract.deployed();
+  console.log(`Deploying contract to ${networkName}...`);
 
-  console.log("Contract deployed to:", DeployedContract.address);
+  const deployedContract = await viem.deployContract("PredictxtzContract");
+
+  console.log("Contract deployed to:", deployedContract.address);
 }
 
 main()
