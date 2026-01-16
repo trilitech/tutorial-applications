@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+pragma solidity 0.8.24;
 
 // for creating a contract that can be owned by an address
 // this is useful for managing access permissions to methods in the contract
@@ -8,13 +8,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 // for preventing reentrancy attacks on functions that modify state
 // this is important for functions that involve transferring tokens or ether
 // to ensure that the function cannot be called again while it is still executing
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /** @title A simple prediction market that uses the Pari-mutuel model allowing winners to share the prize pool.
  */
 
 contract PredictxtzContract is Ownable, ReentrancyGuard {
     // This contract allows users to create markets, place bets, resolve markets, and claim winnings.
+
+    constructor() Ownable(msg.sender) {}
 
     // constants
     uint256 public constant PRECISION = 1e18;
@@ -38,7 +40,6 @@ contract PredictxtzContract is Ownable, ReentrancyGuard {
         // uint256 createdAt;
         bool active;
     }
-
 
     // calculates the total position held by a market participant
     struct Position {
@@ -83,8 +84,6 @@ contract PredictxtzContract is Ownable, ReentrancyGuard {
         uint256 amount
     );
 
-    constructor() {}
-
     function createMarket(
         string calldata question,
         uint256 duration
@@ -120,7 +119,7 @@ contract PredictxtzContract is Ownable, ReentrancyGuard {
         return marketId;
     }
 
-        /**
+    /**
      * Calculate pricePerShare without fees
      */
     function pricePerShareWithoutFees(

@@ -1,11 +1,14 @@
 {
-  "name": "etherlink-prediction-market-starter-backend",
+  "name": "etherlink-prediction-backend",
   "scripts": {},
+  "type": "module",
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.2.3"
+    "@types/node": "^22.19.7",
+    "hardhat": "^3.1.4",
+    "typescript": "~5.8.0"
   },
   "dependencies": {
-    "@thirdweb-dev/contracts": "^3.8.0",
-    "dotenv": "^17.2.2"
+    "@openzeppelin/contracts": "^5.4.0",
+    "dotenv": "^17.2.3"
   }
 }
