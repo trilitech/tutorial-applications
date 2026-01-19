@@ -1,9 +1,10 @@
-// scripts/deploy.js
 import { network } from "hardhat";
 
 async function main() {
 
   const { viem, networkName } = await network.connect();
+  const [walletClient] = await viem.getWalletClients();
+  console.log('Deploying contract with account', walletClient.account.address);
 
   console.log(`Deploying contract to ${networkName}...`);
 
