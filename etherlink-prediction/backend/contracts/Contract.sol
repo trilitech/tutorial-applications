@@ -28,7 +28,7 @@ contract PredictxtzContract is Ownable, ReentrancyGuard {
         string question;
         // string description;
         uint256 endTime; // When betting stops
-    //  uint256 resolveTime;    // When market can be resolved. // For now, we resolve immediately after endTime or manually
+        //  uint256 resolveTime;    // When market can be resolved. // For now, we resolve immediately after endTime or manually
         bool resolved;
         uint8 winner; // 0 = NO, 1 = YES, 2 = INVALID
         uint256 totalYesAmount; // Total $ bet on YES
