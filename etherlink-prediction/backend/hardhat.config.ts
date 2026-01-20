@@ -2,11 +2,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import hardhatViem from "@nomicfoundation/hardhat-viem";
+import hardhatViemAssertions from "@nomicfoundation/hardhat-viem-assertions";
+import hardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   plugins: [
     hardhatViem,
+    hardhatViemAssertions,
+    hardhatNodeTestRunner,
   ],
   solidity: "0.8.24",
   networks: {
