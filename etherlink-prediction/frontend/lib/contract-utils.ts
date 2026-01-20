@@ -1,15 +1,8 @@
 //lib/contract-utils.ts
 
 import { getContract } from "thirdweb";
-import { defineChain } from "thirdweb/chains";
+import { etherlinkShadownet } from "thirdweb/chains";
 import { client } from "./providers";
-
-const etherlinkShadownet = defineChain({
-  id: 127823,
-  rpc: process.env.NEXT_PUBLIC_ETHERLINK_RPC!,
-  name: "Etherlink Shadownet",
-  testnet: true,
-});
 
 const abi = [
   {
