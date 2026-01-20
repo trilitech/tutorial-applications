@@ -21,19 +21,10 @@ async function main() {
   console.log("Waiting for the tx to confirm");
   const marketResult = await client.waitForTransactionReceipt({ hash: tx, confirmations: 1 });
   console.log("Confirmed");
-  // console.log(JSON.stringify(marketResult, (_, v) => typeof v === 'bigint' ? v.toString() : v));
 
-  const result = await contract.read.getMarket([BigInt(0)]);
-  console.log("Market:", JSON.stringify(result, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+  const result = await contract.read.getMarket([BigInt(1)]);
+  console.log("Market created:", result.question);
 
-  console.log(Object.keys(contract));
-
-  const questionCheck = await contract.read.getMostRecentMarketQuestion();
-  console.log(questionCheck);
-
-  // console.log(Object.keys(client));
-  // console.log(client.account.address);
-  // console.log(await client.getBalance(client.account.address));
   console.log(walletClient.account.address);
 }
 
