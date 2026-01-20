@@ -4,21 +4,10 @@ import { getContract } from "thirdweb";
 import { defineChain } from "thirdweb/chains";
 import { client } from "./providers";
 
-const etherlinkShadownetTestnet = defineChain({
-  rpc: "https://node.shadownet.etherlink.com",
-  blockExplorers: [
-    {
-      name: "Etherlink Shadownet Explorer",
-      url: "https://shadownet.explorer.etherlink.com/",
-    },
-  ],
+const etherlinkShadownet = defineChain({
   id: 127823,
+  rpc: process.env.NEXT_PUBLIC_ETHERLINK_RPC!,
   name: "Etherlink Shadownet",
-  nativeCurrency: {
-    decimals: 18,
-    name: "Etherlink",
-    symbol: "XTZ",
-  },
   testnet: true,
 });
 
@@ -685,6 +674,6 @@ const abi = [
 export const contract = getContract({
   client, // Your ThirdWeb client
   address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!, // Your contract address
-  chain: etherlinkShadownetTestnet,
+  chain: etherlinkShadownet,
   abi,
 });
