@@ -59,7 +59,6 @@
     metadata.set("decimals", stringToBytes("0"));
     metadata.set("artifactUri", stringToBytes(defaultImage));
     metadata.set("displayUri", stringToBytes(defaultImage));
-    metadata.set("description", stringToBytes("A token I minted"));
     metadata.set("thumbnailUri", stringToBytes(defaultImage));
 
     const mintItem = {
@@ -80,7 +79,7 @@
 
       console.log(`Waiting for ${op.opHash} to be confirmed...`);
       const hash = await op.confirmation(2).then(() => op.opHash);
-      console.log(`Operation injected: https://ghostnet.tzkt.io/${hash}`);
+      console.log(`Operation injected: https://shadownet.tzkt.io/${hash}`);
     } catch (error) {
       console.error("Error minting NFT:", error);
     } finally {
