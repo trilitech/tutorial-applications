@@ -1,5 +1,5 @@
 {
-  "name": "shadownet-nft-marketplace",
+  "name": "nft-marketplace",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -8,10 +8,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "type": "commonjs",
   "devDependencies": {
-    "@taqueria/plugin-contract-types": "^0.78.0",
-    "@taqueria/plugin-ligo": "^0.78.0",
-    "@taqueria/plugin-taquito": "^0.78.0"
+    "@taqueria/plugin-contract-types": "^0.81.0",
+    "@taqueria/plugin-ligo": "^0.81.0",
+    "@taqueria/plugin-taquito": "^0.81.0"
   }
 }

@@ -11,7 +11,6 @@
         ["6", "Cannot find the contract relative to implicit address"],
       ]));
   */
-export type Extension = { administrators: set<address> };
 
 export type offer = { quantity: nat, price: nat };
 
@@ -24,21 +23,20 @@ export type storage = FA2Impl.storage<Extension>; // extension administrators
 
 type ret = [list<operation>, storage];
 
-
- @entry
- const transfer = (p: FA2Impl.TZIP12.transfer, s: storage): ret => {
-   const ret2: [list<operation>, storage] = FA2Impl.transfer(p, s);
-   return [
-     ret2[0],
-     {
-       ...s,
-       ledger: ret2[1].ledger,
-       metadata: ret2[1].metadata,
-       token_metadata: ret2[1].token_metadata,
-       operators: ret2[1].operators,
-     }
-   ]
- };
+@entry
+const transfer = (p: FA2Impl.TZIP12.transfer, s: storage): ret => {
+  const ret2: [list<operation>, storage] = FA2Impl.transfer(p, s);
+  return [
+    ret2[0],
+    {
+      ...s,
+      ledger: ret2[1].ledger,
+      metadata: ret2[1].metadata,
+      token_metadata: ret2[1].token_metadata,
+      operators: ret2[1].operators,
+    }
+  ]
+};
 
 @entry
 const balance_of = (p: FA2Impl.TZIP12.balance_of, s: storage): ret => {
@@ -69,7 +67,6 @@ const update_operators = (p: FA2Impl.TZIP12.update_operators, s: storage): ret =
     }
   ]
 };
-
 
 @entry
 const mint = (
@@ -120,7 +117,6 @@ const mint = (
     }
   ]
 };
-
 
 @entry
 const sell = ([token_id, quantity, price]: [nat, nat, nat], s: storage): ret => {
