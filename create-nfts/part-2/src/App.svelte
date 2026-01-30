@@ -4,7 +4,7 @@
   import { TezosToolkit, MichelsonMap } from "@taquito/taquito";
   import { stringToBytes } from "@taquito/utils";
 
-  const rpcUrl = "https://rpc.ghostnet.teztnets.com";
+  const rpcUrl = "https://rpc.shadownet.teztnets.com";
   const Tezos = new TezosToolkit(rpcUrl);
 
   let wallet;
@@ -18,8 +18,8 @@
       const newWallet = new BeaconWallet({
         name: "NFT app tutorial",
         network: {
-          type: NetworkType.GHOSTNET,
-        },
+        type: NetworkType.SHADOWNET,
+      },
       });
       await newWallet.requestPermissions();
       address = await newWallet.getPKH();
@@ -42,7 +42,7 @@
 </script>
 
 <main>
-  <h1>Create NFTs</h1>
+  <h1>Simple NFT dApp</h1>
 
   <div class="card">
     {#if wallet}

@@ -4,12 +4,11 @@
   import { TezosToolkit, MichelsonMap } from "@taquito/taquito";
   import { stringToBytes } from "@taquito/utils";
 
-  const rpcUrl = "https://rpc.ghostnet.teztnets.com";
+  const rpcUrl = "https://rpc.shadownet.teztnets.com";
   const Tezos = new TezosToolkit(rpcUrl);
 
-  const nftContractAddress = "KT1Lr8m7HgfY5UF6nXDDcXDxDgEmKyMeds1b";
-  const defaultImage =
-    "https://gateway.pinata.cloud/ipfs/QmRCp4Qc8afPrEqtM1YdRvNagWCsFGXHgGjbBYrmNsBkcE";
+  const nftContractAddress = "KT1NbqYinUijW68V3fxboo4EzQPFgRcdfaYQ";
+  const defaultImage = "https://gateway.pinata.cloud/ipfs/QmRCp4Qc8afPrEqtM1YdRvNagWCsFGXHgGjbBYrmNsBkcE";
 
   let wallet;
   let address;
@@ -22,7 +21,7 @@
       const newWallet = new BeaconWallet({
         name: "NFT app tutorial",
         network: {
-          type: NetworkType.GHOSTNET,
+          type: NetworkType.SHADOWNET,
         },
       });
       await newWallet.requestPermissions();
@@ -58,7 +57,6 @@
     metadata.set("decimals", stringToBytes("0"));
     metadata.set("artifactUri", stringToBytes(defaultImage));
     metadata.set("displayUri", stringToBytes(defaultImage));
-    metadata.set("description", stringToBytes("A token I minted"));
     metadata.set("thumbnailUri", stringToBytes(defaultImage));
 
     const mintItem = {
@@ -79,18 +77,19 @@
 
       console.log(`Waiting for ${op.opHash} to be confirmed...`);
       const hash = await op.confirmation(2).then(() => op.opHash);
-      console.log(`Operation injected: https://ghostnet.tzkt.io/${hash}`);
+      console.log(`Operation injected: https://shadownet.tzkt.io/${hash}`);
     } catch (error) {
       console.error("Error minting NFT:", error);
     } finally {
       statusMessage = "Ready to mint another NFT.";
       buttonActive = true;
     }
-  };
+
+  }
 </script>
 
 <main>
-  <h1>Create NFTs</h1>
+  <h1>Simple NFT dApp</h1>
 
   <div class="card">
     {#if wallet}
