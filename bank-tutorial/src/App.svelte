@@ -1,6 +1,6 @@
 <script>
   import { BeaconWallet } from "@taquito/beacon-wallet";
-  import { NetworkType } from "@airgap/beacon-types";
+  import { NetworkType } from "@tezos-x/octez.connect-types";
   import { TezosToolkit } from "@taquito/taquito";
 
   const rpcUrl = "https://rpc.shadownet.teztnets.com";
