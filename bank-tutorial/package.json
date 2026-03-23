@@ -17,7 +17,7 @@
     "vite-compatible-readable-stream": "^3.6.1"
   },
   "dependencies": {
-    "@airgap/beacon-types": "^4.6.1",
+    "@tezos-x/octez.connect-types": "^4.6.1",
     "@taquito/beacon-wallet": "^23.0.1",
     "@taquito/taquito": "^23.0.1"
   }
