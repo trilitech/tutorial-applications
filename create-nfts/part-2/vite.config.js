@@ -21,9 +21,9 @@ return defineConfig({
     },
   resolve: {
     alias: {
-     "@airgap/beacon-types": path.resolve(
+     "@tezos-x/octez.connect-types": path.resolve(
        path.resolve(),
-       `./node_modules/@airgap/beacon-types/dist/${
+       `./node_modules/@tezos-x/octez.connect-types/dist/${
        isBuild ? "esm" : "cjs"
        }/index.js`
       ),
