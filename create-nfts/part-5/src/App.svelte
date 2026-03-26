@@ -1,6 +1,6 @@
 <script lang="ts">
   import { BeaconWallet } from "@taquito/beacon-wallet";
-  import { NetworkType } from "@airgap/beacon-types";
+  import { NetworkType } from "@tezos-x/octez.connect-types";
   import { TezosToolkit, MichelsonMap } from "@taquito/taquito";
   import { stringToBytes } from "@taquito/utils";
 
