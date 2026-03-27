@@ -1,0 +1,14 @@
+import Tezos = Tezos.Next;
+
+export type storage = set<address>;
+
+type return_type = [list<operation>, storage];
+
+export namespace PokeGame {
+
+  // Accept a poke and store the sender's address
+  @entry
+  const poke = (_: unit, storage: storage): return_type =>
+    [[], Set.add(Tezos.get_sender(), storage)];
+
+}

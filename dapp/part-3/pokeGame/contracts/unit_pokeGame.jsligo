@@ -1,0 +1,126 @@
+#import "./pokeGame.jsligo" "PokeGame"
+
+import Test = Test.Next;
+import Tezos = Tezos.Next;
+
+export const setUpAccounts = ((): [address, address] => {
+  // Set up test account
+  Test.State.reset(2 as nat, list([]) as list<tez>);
+  const account1: address = Test.Account.address(0);
+  const account2: address = Test.Account.address(1);
+  Test.IO.log(
+    "Account 1 has address "
+    + Test.String.show(account1)
+    + " and balance "
+    + Test.String.show(Test.Address.get_balance(account1))
+  );
+  return [account1, account2];
+});
+
+const accounts = setUpAccounts();
+
+// Default storage
+export const initial_storage: PokeGame.storage = {
+  messages: Map.empty,
+  feedback: "Hello",
+  admin: accounts[0],
+  tickets: Map.empty,
+};
+
+// Deploy contract and return its typed address
+const deployInitialContract = ((): typed_address<parameter_of PokeGame.PokeGame, PokeGame.storage> => {
+  const contract1 = Test.originate(contract_of(PokeGame.PokeGame), initial_storage, 0mutez);
+  Test.IO.log(
+    "Deployed contract 1 to: "
+    + Test.String.show(Test.Typed_address.to_address(contract1.taddr))
+  );
+  return contract1.taddr;
+});
+
+
+export const unitTest = (
+  accounts: [address, address],
+  contract1_taddr: typed_address<parameter_of PokeGame.PokeGame, PokeGame.storage>
+): unit => {
+
+  const [account1, account2] = accounts;
+
+  // Simulate a transaction
+  Test.State.set_source(account1);
+  const result1 = Test.Contract.transfer(Test.Typed_address.get_entrypoint("poke", contract1_taddr), unit, 0tez);
+  match(result1) {
+    when(Fail(_err)): failwith("Transaction failed");
+    when(Success(_s)): Test.IO.log("Transaction succeeded");
+  };
+
+  // Verify that the poke was stored in storage
+  const storage1: PokeGame.storage = Test.get_storage(contract1_taddr);
+  Test.IO.log(storage1);
+  match(Map.find_opt(account1, storage1.messages)) {
+    when(Some(message)): Assert.assert(message == "");
+    when(None()): Assert.assert(false);
+  };
+
+  // Try poking with a message
+  const result2 = Test.Contract.transfer(Test.Typed_address.get_entrypoint("pokeWithMessage", contract1_taddr), "Test message", 0tez);
+  match(result2) {
+    when(Fail(_err)): failwith("Transaction failed");
+    when(Success(_s)): Test.IO.log("Transaction succeeded");
+  };
+
+  // Verify that the poke was stored in storage
+  const storage2: PokeGame.storage = Test.get_storage(contract1_taddr);
+  Test.IO.log(storage2);
+  match(Map.find_opt(account1, storage2.messages)) {
+    when(Some(message)): Assert.assert(message == "Test message");
+    when (None()): Assert.assert(false);
+  };
+
+  // Deploy another contract
+  const contract2Feedback = "You poked me!";
+  const contract2 = Test.originate(contract_of(PokeGame.PokeGame), { ...initial_storage, feedback: contract2Feedback }, 0mutez);
+  const contract2Address = Test.Typed_address.to_address(contract2.taddr);
+  Test.IO.log(
+    "Deployed contract 2 to: "
+    + Test.String.show(contract2Address)
+  );
+
+  // Verify that account2 can't poke without a ticket
+  Test.State.set_source(account2);
+  const result3 = Test.Contract.transfer(Test.Typed_address.get_entrypoint("pokeOtherContract", contract1_taddr), contract2Address, 0tez);
+   match(result3) {
+    when(Fail(_err)): Test.IO.log("Successfully failed a poke from someone who didn't have a ticket");
+    when(Success(_s)): failwith("Transaction should have been blocked");
+  };
+
+  // Admin creates a ticket for account 2
+  Test.State.set_source(account1);
+  const _ = Test.Contract.transfer_exn(Test.Typed_address.get_entrypoint("createTicket", contract1_taddr), account2, 0tez);
+  const storage3: PokeGame.storage = Test.get_storage(contract1_taddr);
+  match(Map.find_opt(account2, storage3.tickets)) {
+    when(Some(ticket)): do {
+      const [[_ticketerAddress, [ticketAddress, _amount]], _newTicket] = Tezos.Ticket.read(ticket);
+      Assert.assert(ticketAddress == account2);
+    }
+    when (None()): Assert.assert(false);
+  };
+
+  // Poke contract 2 via contract 1
+  Test.State.set_source(account2);
+  const result4 = Test.Contract.transfer(Test.Typed_address.get_entrypoint("pokeOtherContract", contract1_taddr), contract2Address, 0tez);
+  match(result4) {
+    when(Fail(_err)): failwith(_err);
+    when(Success(_s)): Test.IO.log("Transaction succeeded");
+  };
+
+  // Check that contract 2 called pokeMe in response
+  const storage4: PokeGame.storage = Test.get_storage(contract1_taddr);
+  Test.IO.log(storage4);
+  match(Map.find_opt(contract2Address, storage4.messages)) {
+    when(Some(message)): Assert.assert(message == contract2Feedback);
+    when (None()): Assert.assert(false);
+  };
+
+};
+
+const testContract = ((): unit => unitTest(accounts, deployInitialContract()))();
