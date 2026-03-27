@@ -1,63 +1,163 @@
+import Tezos = Tezos.Next;
+
 namespace Bank {
 
   // Storage stores a map of addresses and how much tez they have deposited
-  type map_type = big_map<address, tez>;
+  export type map_type = big_map<address, tez>;
 
   type return_type = [list<operation>, map_type];
 
-  // Deposit endpoint: send a certain amount of tez to be deposited
-  @entry
-  const deposit = (_: unit, store : map_type): return_type => {
+  // Deposit entrypoint: send a certain amount of tez to be deposited
+  // @entry
+  const deposit = (_: unit, storage: map_type): return_type => {
     // Verify that the sender sent tez
     if (Tezos.get_amount() <= (0 as tez)) {
       return failwith("Send some tez to this entrypoint.");
     }
     // Get the sender's current balance, if any
-    const balance_option = Big_map.find_opt(Tezos.get_sender(), store);
+    const balance_option: option<tez> = Big_map.find_opt(Tezos.get_sender(), storage);
     // Get the new balance
     const new_balance =
-      match(balance_option) {
+      $match(balance_option, {
         // Sender has a previous balance
-        when(Some(current_balance)): current_balance + Tezos.get_amount();
+        "Some": (current_balance: tez) => current_balance + Tezos.get_amount(),
         // Sender has a 0 balance
-        when(None()): Tezos.get_amount();
-      }
-    const updated_map = Big_map.update(Tezos.get_sender(), Some(new_balance), store);
+        "None": () => Tezos.get_amount(),
+      });
+    const updated_map = Big_map.update(Tezos.get_sender(), ["Some" as "Some", new_balance], storage);
 
-    return [list([]), updated_map];
+    return [[], updated_map];
   }
 
   // Withdraw the tez that the account has deposited
-  @entry
-  const withdraw = (_: unit, store : map_type): return_type => {
+  // @entry
+  const withdraw = (_: unit, storage: map_type): return_type => {
     // Verify that the sender did not send tez
     if (Tezos.get_amount() > (0 as tez)) {
       return failwith("Do not send tez to this entrypoint");
     }
     // Get the sender's current balance, if any
-    const balance_option = Big_map.find_opt(Tezos.get_sender(), store);
-    return match(balance_option) {
-      when(Some(current_balance)): do {
-        // Sender has a previous balance
+    const balance_option: option<tez> = Big_map.find_opt(Tezos.get_sender(), storage);
+    return $match(balance_option, {
+      // Sender has a previous balance
+      "Some": (current_balance: tez) => (() => {
         // Update the map
-        const updated_map = Big_map.remove(Tezos.get_sender(), store);
+        const updated_map = Big_map.remove(Tezos.get_sender(), storage);
         // Send tez to the account
-        const payment: operation = Tezos.transaction(unit, current_balance, Tezos.get_contract_with_error(Tezos.get_sender(), "Account not found"));
-        return [list([payment]), updated_map];
-      };
-        // Sender has a 0 balance
-      when(None()): failwith("You do not currently have a balance.");
-    };
+        const payment: operation = Tezos.Operation.transaction(unit, current_balance, Tezos.get_contract_with_error(Tezos.get_sender(), "Account not found"));
+        return [[payment], updated_map];
+      })(),
+      "None": () => failwith("You do not currently have a balance."),
+    });
   }
 
   // Get the user's balance
-  @view
-  const balance = (account: address, store: map_type): tez => {
+  // @view
+  const balance = (account: address, storage: map_type): tez => {
     // Get the sender's current balance, if any
-    const balance_option = Big_map.find_opt(account, store);
-    return match(balance_option) {
-      when(Some(current_balance)): current_balance;
-      when(None()): 0 as tez;
-    };
+    const balance_option: option<tez> = Big_map.find_opt(account, storage);
+    return $match(balance_option, {
+      "Some": (current_balance) => current_balance,
+      "None": () => 0 as tez,
+    });
   }
 }
+
+import Test = Test.Next;
+
+const test = (() => {
+
+  const starting_storage: Bank.map_type = Big_map.empty;
+  const contract = Test.Originate.contract(contract_of(Bank), starting_storage, 0 as tez);
+  const user_account: address = Test.Account.address(0 as nat);
+  Test.State.set_source(user_account);
+  const other_user: address = Test.Account.address(1 as nat);
+
+  // Test deposit entrypoint
+
+  // Test failure when no tez are sent
+  const deposit1 = Test.Contract.transfer(
+    Test.Typed_address.get_entrypoint("deposit", contract.taddr),
+    unit,
+    0 as tez
+    );
+  $match(deposit1, {
+    "Fail": _err => Test.IO.log("Deposit entrypoint correctly rejected a call without any tez"),
+    "Success": _s => failwith("Deposit entrypoint failed to reject a call without any tez"),
+  });
+
+  // Deposit
+  Test.Contract.transfer_exn(
+    Test.Typed_address.get_entrypoint("deposit", contract.taddr),
+    unit,
+    1 as tez
+  );
+  // Check balance by getting the storage
+  const storageAfterDeposit: Bank.map_type = Test.Typed_address.get_storage(contract.taddr);
+  const entry_opt: option<tez> = Big_map.find_opt(user_account, storageAfterDeposit);
+  $match(entry_opt, {
+    "Some": (balance: tez) => Assert.assert(Test.Compare.eq(balance, 1 as tez)),
+    "None": () => failwith("Deposit did not update balance"),
+  });
+
+  // Test balance view
+  const contractAddress = Test.Typed_address.to_address(contract.taddr);
+  const viewResultOption1: option<tez> = Tezos.View.call("balance", user_account, contractAddress);
+  const viewResult1 = $match(viewResultOption1, {
+    "Some": (balance) => balance,
+    "None": () => 0 as tez,
+  });
+  Assert.assert(Test.Compare.eq(viewResult1, 1 as tez));
+  const viewResultOption2: option<tez> = Tezos.View.call("balance", other_user, contractAddress);
+  const viewResult2 = $match(viewResultOption2, {
+    "Some": (balance) => balance,
+    "None": () => 0 as tez,
+  });
+  Assert.assert(Test.Compare.eq(viewResult2, 0 as tez));
+
+  // Withdraw entrypoint
+
+  // Test that another user can't withdraw without depositing
+  Test.State.set_source(other_user);
+  const withdraw1 = Test.Contract.transfer(
+    Test.Typed_address.get_entrypoint("withdraw", contract.taddr),
+    unit,
+    0 as tez
+    );
+  $match(withdraw1, {
+    "Fail": _err => Test.IO.log("Withdraw entrypoint successfully blocked a withdrawal from an account with no balance when there are other deposits"),
+    "Success": _s => failwith("Deposit entrypoint failed to block a withdrawal from an account with no balance"),
+  });
+  Test.State.set_source(user_account);
+
+  // Test withdraw
+  const user_balance_before = Test.Address.get_balance(user_account);
+  Test.Contract.transfer_exn(
+    Test.Typed_address.get_entrypoint("withdraw", contract.taddr),
+    unit,
+    0 as tez
+  );
+  const user_balance_after = Test.Address.get_balance(user_account);
+  Assert.assert(Test.Compare.lt(user_balance_before, user_balance_after));
+
+  // Test withdraw failures
+  const withdraw2 = Test.Contract.transfer(
+    Test.Typed_address.get_entrypoint("withdraw", contract.taddr),
+    unit,
+    0 as tez
+    );
+  $match(withdraw2, {
+    "Fail": _err => Test.IO.log("Withdraw entrypoint successfully blocked a withdrawal from an account with no balance"),
+    "Success": _s => failwith("Deposit entrypoint failed to block a withdrawal from an account with no balance"),
+  });
+  const withdraw3 = Test.Contract.transfer(
+    Test.Typed_address.get_entrypoint("withdraw", contract.taddr),
+    unit,
+    1 as tez
+    );
+  $match(withdraw3, {
+    "Fail": _err => Test.IO.log("Withdraw entrypoint successfully blocked a withdrawal request that included tez"),
+    "Success": _s => failwith("Deposit entrypoint failed to block a withdrawal request that included tez"),
+  });
+
+})();
