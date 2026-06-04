@@ -26,6 +26,12 @@
       type: NetworkType.SHADOWNET,
     },
     });
+    // Await Beacon's IndexedDB init to fix a race condition in @taquito/beacon-wallet
+    // v 24.3.0:
+    // sendMetrics() accesses the "metrics" store before initDB() completes otherwise.
+    await newWallet.client.beaconIDB.initDB().catch(
+      (e) => console.warn('beaconIDB.initDB failed:', e)
+    );
     await newWallet.requestPermissions();
     address = await newWallet.getPKH();
     getWalletBalance(address);
