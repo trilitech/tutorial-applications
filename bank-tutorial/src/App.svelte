@@ -34,7 +34,7 @@
     );
     await newWallet.requestPermissions();
     address = await newWallet.getPKH();
-    getWalletBalance(address);
+    await getWalletBalance(address);
     await getBankBalance(address);
     wallet = newWallet;
     depositButtonActive = true;
