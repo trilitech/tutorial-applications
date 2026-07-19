@@ -1,0 +1,33 @@
+#import "./pokeGame.jsligo" "PokeGame"
+
+#import "./unit_pokeGame.jsligo" "PokeGameTest"
+
+import Test = Test.Next;
+
+// Mutation test configuration
+const _tests = (
+  ta: typed_address<parameter_of PokeGame.PokeGame, PokeGame.storage>,
+  _: michelson_contract<parameter_of PokeGame.PokeGame, PokeGame.storage>,
+  _2: int
+): unit => PokeGameTest.unitTest(PokeGameTest.setUpAccount(), ta);
+
+const test_mutation =
+  (
+    (): unit => {
+      const mutationErrorList =
+        Test.Mutation.All.contract(
+          contract_of(PokeGame.PokeGame),
+          PokeGameTest.initial_storage,
+          0mutez,
+          _tests
+        );
+      match(mutationErrorList) {
+        when ([]): Test.IO.log("Mutation tests passed");
+        when ([head, ..._tail]):
+          do {
+            Test.IO.log(head);
+            failwith(Test.String.show(head[1]))
+          }
+      };
+    }
+  )();
